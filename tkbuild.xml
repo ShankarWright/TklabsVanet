@@ -53,7 +53,7 @@
 
 <object name="kernel-build" target="kernel world" directory="build/linux-3.0.64">
     <Run>./crossmake $${NCPU} all</Run>
-    <Run ignorerror="true">./crossmake install 2>/dev/null</Run>
+    <Run ignoreerror="true">./crossmake install 2>/dev/null</Run>
 </object>
 
 <!--
