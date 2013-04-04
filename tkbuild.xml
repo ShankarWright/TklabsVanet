@@ -19,7 +19,8 @@
 -->
 <object name="clean" target="clean">
     <Del dest="build/*" />
-    <Run>sudo rm -fr nfsroot/*</Run>
+    <!--<Run>sudo rm -fr nfsroot/*</Run>-->
+    <Del dest="nfsroot/*" />
 </object>
 
 <!--
@@ -54,18 +55,26 @@
 <object name="kernel-build" target="kernel world" directory="build/linux-3.0.64">
     <Run>./crossmake $${NCPU} all</Run>
     <Run ignoreerror="true">./crossmake install 2>/dev/null</Run>
+    <Run>./crossmake modules_install >/dev/null</Run>
 </object>
 
 <!--
     "Output" Targets
 -->
-<object name="nfsroot" target="nfsroot world">
-    <echo>Building NFSROOT...</echo>
-    <Run>sudo tar -xf build/buildroot-2013.02/output/images/rootfs.tar -C nfsroot/</Run>
-</object>
-
+<!--
 <object name="kernel-install" target="nfsroot world" directory="build/linux-3.0.64">
     <Run>sudo ./crossmake modules_install >/dev/null</Run>
+    <Run>./crossmake modules_install >/dev/null</Run>
+</object>
+-->
+<object name="nfsroot" target="nfsroot world">
+    <echo>Building NFSROOT...</echo>
+    <!--<Run>sudo tar -xf build/buildroot-2013.02/output/images/rootfs.tar -C nfsroot/</Run>-->
+    <Copy src="build/buildroot-2013.02/output/images/rootfs.tar" dest="nfsroot" />
+</object>
+
+<object name="nfsroot" target="nfsroot world" directory="kernel">
+    <Run>tar cf ../nfsroot/kernel_modules.tar lib</Run>
 </object>
 
 </BuildConfig>

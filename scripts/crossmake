@@ -3,6 +3,6 @@
 export PATH=$PATH:$PWD/../buildroot-2013.02/output/host/usr/bin
 
 export INSTALL_PATH=$PWD/../../kernel
-export INSTALL_MOD_PATH=$PWD/../../nfsroot
+export INSTALL_MOD_PATH=$PWD/../../kernel
 
 make $1 $2 $3 CROSS_COMPILE=i586-buildroot-linux-uclibc-
