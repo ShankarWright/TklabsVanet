@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BuildConfig version="1">
+
+<var name="MAKE">make</var>
+<var target="clean" name="MAKE_ARGS">clean</var>
+
+<object name="help" target="!clean !config">
+    <echo>tkbuild options:</echo>
+    <echo>- config    - configure everything for build (do once)</echo>
+    <echo>- world     - builds the world, creates nfsroot for export, etc.</echo>
+    <echo>- buildroot - builds initial buildroot and toolchain</echo>
+    <echo>- kernel    - builds linux kernel, builds buildroot</echo>
+    <echo>- nfsroot   - builds NFSROOT</echo>
+    <echo>- clean     - clean out everything</echo>
+</object>
+
+<!--
+    "Clean" Targets
+-->
+<object name="clean" target="clean">
+    <Del dest="build/*" />
+    <Run>sudo rm -fr nfsroot/*</Run>
+</object>
+
+<!--
+    "Config" Targets
+-->
+<object name="buildroot-config" target="config">
+    <echo>Configuring buildroot...</echo>
+    <Run>tar xzf source/buildroot-2013.02.tar.gz -C build</Run>
+    <Copy src="config/buildroot_config" dest="build/buildroot-2013.02/.config" />
+</object>
+
+<object name="kernel-config" target="config">
+    <echo>Configuring kernel...</echo>
+    <Run>tar xjf source/linux-3.0.64.tar.bz2 -C build</Run>
+    <Copy src="scripts/crossmake" dest="build/linux-3.0.64/crossmake" />
+    <Run>chmod +x build/linux-3.0.64/crossmake</Run>
+</object>
+
+<object name="kernel-config2" target="config" directory="build/linux-3.0.64">
+    <Run>./crossmake mrproper</Run>
+    <Copy src="../../config/linux_config" dest=".config" />
+    <Run>./crossmake oldconfig</Run>
+</object>
+
+<!--
+    "Build" Targets
+-->
+<object name="buildroot-build" target="buildroot kernel world" directory="build/buildroot-2013.02">
+    <Run>$${MAKE} $${NCPU} $${MAKE_ARGS}</Run>
+</object>
+
+<object name="kernel-build" target="kernel world" directory="build/linux-3.0.64">
+    <Run>./crossmake $${NCPU} all</Run>
+    <Run ignorerror="true">./crossmake install 2>/dev/null</Run>
+</object>
+
+<!--
+    "Output" Targets
+-->
+<object name="nfsroot" target="nfsroot world">
+    <echo>Building NFSROOT...</echo>
+    <Run>sudo tar -xf build/buildroot-2013.02/output/images/rootfs.tar -C nfsroot/</Run>
+</object>
+
+<object name="kernel-install" target="nfsroot world" directory="build/linux-3.0.64">
+    <Run>sudo ./crossmake modules_install >/dev/null</Run>
+</object>
+
+</BuildConfig>
