@@ -19,6 +19,7 @@
 -->
 <object name="clean" target="clean">
     <Del dest="build/*" />
+    <Del dest="kernel/*" />
     <Del dest="nfsroot/*" />
 </object>
 
