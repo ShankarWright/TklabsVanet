@@ -2,6 +2,8 @@
 <BuildConfig version="1">
 
 <var name="MAKE">make</var>
+<var name="BR2_LEVEL" exported="true">$${NUMCPU}</var>
+
 <var target="clean" name="MAKE_ARGS">clean</var>
 
 <object name="help" target="!clean !config">
@@ -49,7 +51,7 @@
     "Build" Targets
 -->
 <object name="buildroot-build" target="buildroot kernel world" directory="build/buildroot-2013.02">
-    <Run>$${MAKE} $${NCPU} $${MAKE_ARGS}</Run>
+    <Run>$${MAKE} $${MAKE_ARGS}</Run>
 </object>
 
 <object name="kernel-build" target="kernel world" directory="build/linux-3.4.39">
