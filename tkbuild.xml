@@ -32,6 +32,7 @@
     <echo>Configuring buildroot...</echo>
     <Run>tar xzf source/buildroot-2013.02.tar.gz -C build</Run>
     <Copy src="config/buildroot_config_3.4.39" dest="build/buildroot-2013.02/.config" />
+    <Copy src="config/busybox-1.21.x.config" dest="build/buildroot-2013.02/package/busybox/busybox-1.21.x.config.tklabs" />
 </object>
 
 <object name="kernel-config" target="config kernel-config">
