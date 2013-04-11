@@ -1,0 +1,1 @@
+SUBSYSTEM=="i2c", IMPORT{builtin}="kmod load i2c_dev lm90"
