@@ -22,8 +22,7 @@
 -->
 <object name="clean" target="clean">
     <Del dest="build/*" />
-    <Del dest="kernel/*" />
-    <Del dest="output/*" />
+    <Del dest="scratch/*" />
 </object>
 
 <!--
@@ -32,7 +31,6 @@
 <object name="toolchain" target="toolchain config">
     <echo>Extracting pre-build toolchain...</echo>
     <Run>sudo tar xJf source/alix_toolchain.tar.xz -C /</Run>
-    <Run>chmod -R g+w /opt/alix_toolchain</Run>
 </object>
 
 <!--
@@ -78,11 +76,11 @@
 -->
 <object name="nfsroot" target="nfsroot world">
     <echo>Building NFSROOT...</echo>
-    <Copy src="build/buildroot-2013.02/output/images/rootfs.tar" dest="output" />
+    <Run>gzip -c build/buildroot-2013.02/output/images/rootfs.tar > output/rootfs.tar.gz</Run>
 </object>
 
 <object name="nfsroot" target="nfsroot world" directory="scratch">
-    <Run>tar cf ../output/kernel_modules.tar lib</Run>
+    <Run>tar czf ../output/kernel_modules.tar.gz lib</Run>
 </object>
 
 </BuildConfig>
