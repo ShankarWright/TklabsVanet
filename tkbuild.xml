@@ -6,10 +6,11 @@
 
 <var target="clean" name="MAKE_ARGS">clean</var>
 
-<object name="help" target="!clean !config">
+<object name="help" target="help">
     <echo>tkbuild options:</echo>
     <echo>- config    - configure everything for build (do once)</echo>
-    <echo>- world     - builds the world, creates nfsroot for export, etc.</echo>
+    <echo>- toolchain - extract a pre-built toolchain for kernel building</echo>
+    <echo>- world     - builds the world, creates output files, etc.</echo>
     <echo>- buildroot - builds initial buildroot and toolchain</echo>
     <echo>- kernel    - builds linux kernel, builds buildroot</echo>
     <echo>- nfsroot   - builds NFSROOT</echo>
@@ -22,7 +23,16 @@
 <object name="clean" target="clean">
     <Del dest="build/*" />
     <Del dest="kernel/*" />
-    <Del dest="nfsroot/*" />
+    <Del dest="output/*" />
+</object>
+
+<!--
+    Pre-compiled Toolchain
+-->
+<object name="toolchain" target="toolchain config">
+    <echo>Extracting pre-build toolchain...</echo>
+    <Run>sudo tar xJf source/alix_toolchain.tar.xz -C /</Run>
+    <Run>chmod -R g+w /opt/alix_toolchain</Run>
 </object>
 
 <!--
@@ -33,6 +43,7 @@
     <Run>tar xzf source/buildroot-2013.02.tar.gz -C build</Run>
     <Copy src="config/buildroot_config_3.4.39" dest="build/buildroot-2013.02/.config" />
     <Copy src="config/busybox-1.21.x.config" dest="build/buildroot-2013.02/package/busybox/busybox-1.21.x.config.tklabs" />
+    <Run>chmod +w build/buildroot-2013.02/package/busybox/busybox-1.21.x.config.tklabs</Run>
 </object>
 
 <object name="kernel-config" target="config kernel-config">
@@ -51,7 +62,8 @@
 <!--
     "Build" Targets
 -->
-<object name="buildroot-build" target="buildroot kernel world" directory="build/buildroot-2013.02">
+<object name="buildroot-build" target="buildroot world" directory="build/buildroot-2013.02">
+    <Run>../../scripts/warn_toolchain.sh</Run>
     <Run>$${MAKE} $${MAKE_ARGS}</Run>
 </object>
 
@@ -66,11 +78,11 @@
 -->
 <object name="nfsroot" target="nfsroot world">
     <echo>Building NFSROOT...</echo>
-    <Copy src="build/buildroot-2013.02/output/images/rootfs.tar" dest="nfsroot" />
+    <Copy src="build/buildroot-2013.02/output/images/rootfs.tar" dest="output" />
 </object>
 
-<object name="nfsroot" target="nfsroot world" directory="kernel">
-    <Run>tar cf ../nfsroot/kernel_modules.tar lib</Run>
+<object name="nfsroot" target="nfsroot world" directory="scratch">
+    <Run>tar cf ../output/kernel_modules.tar lib</Run>
 </object>
 
 </BuildConfig>

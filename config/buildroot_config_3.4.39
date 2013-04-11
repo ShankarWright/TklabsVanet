@@ -74,7 +74,7 @@ BR2_XZCAT="xzcat"
 BR2_TAR_OPTIONS=""
 BR2_DEFCONFIG="$(CONFIG_DIR)/defconfig"
 BR2_DL_DIR="$(TOPDIR)/dl"
-BR2_HOST_DIR="$(BASE_DIR)/host"
+BR2_HOST_DIR="/opt/alix_toolchain"
 
 #
 # Mirrors and Download locations
