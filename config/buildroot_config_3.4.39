@@ -859,32 +859,12 @@ BR2_PACKAGE_UDEV=y
 #
 # jamvm requires a toolchain with IPV6 support
 #
-BR2_PACKAGE_LUA=y
-BR2_PACKAGE_LUA_INTERPRETER_EDITING_NONE=y
+# BR2_PACKAGE_LUA is not set
+# BR2_PACKAGE_LUA_INTERPRETER_EDITING_NONE is not set
 # BR2_PACKAGE_LUA_INTERPRETER_READLINE is not set
 # BR2_PACKAGE_LUA_INTERPRETER_LINENOISE is not set
 # BR2_PACKAGE_LUAJIT is not set
-
-#
-# LUA libraries/modules
-#
-# BR2_PACKAGE_CGILUA is not set
-# BR2_PACKAGE_COPAS is not set
-# BR2_PACKAGE_COXPCALL is not set
-# BR2_PACKAGE_LUACJSON is not set
-# BR2_PACKAGE_LUAEXPAT is not set
-# BR2_PACKAGE_LUAFILESYSTEM is not set
-# BR2_PACKAGE_LUASOCKET is not set
-# BR2_PACKAGE_LUA_MSGPACK_NATIVE is not set
-# BR2_PACKAGE_RINGS is not set
-# BR2_PACKAGE_WSAPI is not set
-# BR2_PACKAGE_XAVANTE is not set
-BR2_PACKAGE_PERL=y
-BR2_PACKAGE_PERL_MODULES=""
-
-#
-# Perl libraries/modules
-#
+# BR2_PACKAGE_PERL is not set
 # BR2_PACKAGE_PHP is not set
 # BR2_PACKAGE_PYTHON is not set
 # BR2_PACKAGE_PYTHON3 is not set
@@ -1079,12 +1059,13 @@ BR2_PACKAGE_SQLITE=y
 # BR2_PACKAGE_LIBNETFILTER_CTTIMEOUT is not set
 # BR2_PACKAGE_LIBNETFILTER_LOG is not set
 # BR2_PACKAGE_LIBNFNETLINK is not set
-# BR2_PACKAGE_LIBNL is not set
+BR2_PACKAGE_LIBNL=y
+# BR2_PACKAGE_LIBNL_TOOLS is not set
 
 #
 # liboping requires a toolchain with IPv6 support enabled
 #
-# BR2_PACKAGE_LIBPCAP is not set
+BR2_PACKAGE_LIBPCAP=y
 # BR2_PACKAGE_LIBOSIP2 is not set
 # BR2_PACKAGE_LIBRSYNC is not set
 # BR2_PACKAGE_LIBSOUP is not set
@@ -1234,7 +1215,7 @@ BR2_PACKAGE_LIBXML2=y
 # BR2_PACKAGE_IPSEC_TOOLS is not set
 # BR2_PACKAGE_IPSET is not set
 # BR2_PACKAGE_IPTABLES is not set
-# BR2_PACKAGE_IW is not set
+BR2_PACKAGE_IW=y
 # BR2_PACKAGE_KISMET is not set
 # BR2_PACKAGE_LIGHTTPD is not set
 # BR2_PACKAGE_LINKS is not set
@@ -1309,7 +1290,8 @@ BR2_PACKAGE_OPENSSH=y
 # Squid requires a toolchain with C++ and IPv6 support enabled
 #
 # BR2_PACKAGE_STUNNEL is not set
-# BR2_PACKAGE_TCPDUMP is not set
+BR2_PACKAGE_TCPDUMP=y
+# BR2_PACKAGE_TCPDUMP_SMB is not set
 # BR2_PACKAGE_TCPREPLAY is not set
 # BR2_PACKAGE_THTTPD is not set
 # BR2_PACKAGE_TINYHTTPD is not set
