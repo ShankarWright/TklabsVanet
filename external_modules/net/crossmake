@@ -1,0 +1,8 @@
+#!/bin/sh
+
+export PATH=$PATH:/opt/alix_toolchain/usr/bin
+
+export INSTALL_PATH=$PWD/../../scratch
+export INSTALL_MOD_PATH=$PWD/../../scratch
+
+make $1 $2 $3 CROSS_COMPILE=i586-buildroot-linux-uclibc- ARCH=i386
