@@ -15,6 +15,7 @@
     <echo>- kernel    - builds linux kernel, builds buildroot</echo>
     <echo>- nfsroot   - builds NFSROOT</echo>
     <echo>- extmod    - builds out-of-tree kernel modules</echo>
+    <echo>- ath	    - builds ath5k driver</echo>
     <echo>- clean     - clean out everything</echo>
 </object>
 
@@ -74,11 +75,24 @@
     <Run>./crossmake modules_install >/dev/null</Run>
 </object>
 
-<object name="extmod" target="extmod kernel world" directory="external_modules/drivers/net/wireless/ath">       
-    <echo>Building External Out-Of-Tree Kernel Modules</echo>
+<object name="ath" target="ath extmod" directory="external_modules/drivers/net/wireless/ath">       
+    <echo>Building Atheros ath5k driver</echo>
     <Run>./crossmake all</Run>
     <Run>./crossmake modules_install</Run>
 </object>
+
+<object name="mac" target="mac extmod" directory="external_modules/net/mac80211/">
+    <echo>Building mac80211 module</echo>
+    <Run>./crossmake all</Run>
+    <Run>./crossmake modules_install</Run>
+</object>
+
+<object name="cfg" target="cfg extmod" directory="external_modules/net/wireless/">
+    <echo>Building cfg80211 module</echo>
+    <Run>./crossmake all</Run>
+    <Run>./crossmake modules_install</Run>
+</object>
+
 
 <!--
     "Output" Targets
