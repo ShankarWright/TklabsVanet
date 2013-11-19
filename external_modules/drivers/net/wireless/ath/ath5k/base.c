@@ -72,9 +72,9 @@ bool ath5k_modparam_nohwcrypt;
 module_param_named(nohwcrypt, ath5k_modparam_nohwcrypt, bool, S_IRUGO);
 MODULE_PARM_DESC(nohwcrypt, "Disable hardware encryption.");
 
-static bool modparam_all_channels;
-module_param_named(all_channels, modparam_all_channels, bool, S_IRUGO);
-MODULE_PARM_DESC(all_channels, "Expose all channels the device can use.");
+static bool modparam_p_limit;
+module_param_named(p_limit, modparam_p_limit, bool, S_IRUGO);
+MODULE_PARM_DESC(p_limit, "limit the driver to work at 802.11p frecuencies 5.850GHz - 5.925GHz");
 
 static bool modparam_fastchanswitch;
 module_param_named(fastchanswitch, modparam_fastchanswitch, bool, S_IRUGO);
@@ -260,19 +260,35 @@ static int ath5k_reg_notifier(struct wiphy *wiphy, struct regulatory_request *re
  */
 static bool ath5k_is_standard_channel(short chan, enum ieee80211_band band)
 {
+	if (modparam_p_limit) {		
+		if (band == IEEE80211_BAND_2GHZ) {
+			return false;
+		}
+			
+		if (chan == 172 || chan == 176 || chan == 180) { 	/*JM return true only for*/
+			return true;				 					/*channels 172, 176, 180 */
+										 					/*20Mhz BW, this needs fixing*/
+		}
+		return false;
+
+	} 
+
 	if (band == IEEE80211_BAND_2GHZ && chan <= 14)
 		return true;
 
 	return	/* UNII 1,2 */
-		(((chan & 3) == 0 && chan >= 36 && chan <= 64) ||
-		/* midband */
-		((chan & 3) == 0 && chan >= 100 && chan <= 140) ||
-		/* UNII-3 */
-		((chan & 3) == 1 && chan >= 149 && chan <= 165) ||
-		/* 802.11j 5.030-5.080 GHz (20MHz) */
-		(chan == 8 || chan == 12 || chan == 16) ||
-		/* 802.11j 4.9GHz (20MHz) */
-		(chan == 184 || chan == 188 || chan == 192 || chan == 196));
+			(((chan & 3) == 0 && chan >= 36 && chan <= 64) ||
+			/* midband */
+			((chan & 3) == 0 && chan >= 100 && chan <= 140) ||
+			/* UNII-3 */
+			((chan & 3) == 1 && chan >= 149 && chan <= 165) ||
+			/* 802.11j 5.030-5.080 GHz (20MHz) */
+			(chan == 8 || chan == 12 || chan == 16) ||
+			/* 802.11j 4.9GHz (20MHz) */
+			(chan == 184 || chan == 188 || chan == 192 || chan == 196));
+
+
+	
 }
 
 static unsigned int
@@ -318,13 +334,7 @@ ath5k_setup_channels(struct ath5k_hw *ah, struct ieee80211_channel *channels,
 		if (!ath5k_channel_ok(ah, &channels[count]))
 			continue;
 
-
-                // NOTE HACK - Temporarily bypass standard channel check.  
-                //  ath5k_is_standard_channel needs modification for 802.11p channels
-                modparam_all_channels = true;
-
-		if (!modparam_all_channels &&
-		    !ath5k_is_standard_channel(ch, band))
+		if (!ath5k_is_standard_channel(ch, band))
 			continue;
 
 		count++;
