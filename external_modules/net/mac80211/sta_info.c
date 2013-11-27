@@ -665,6 +665,8 @@ int __must_check __sta_info_destroy(struct sta_info *sta)
 	int ret, i, ac;
 	struct tid_ampdu_tx *tid_tx;
 
+	//printk(KERN_INFO "__sta_info_destroy()\n");
+
 	might_sleep();
 
 	if (!sta)
@@ -706,6 +708,7 @@ int __must_check __sta_info_destroy(struct sta_info *sta)
 		RCU_INIT_POINTER(sdata->u.vlan.sta, NULL);
 
 	while (sta->sta_state > IEEE80211_STA_NONE) {
+		printk(KERN_INFO "sta_state = %d\n", sta->sta_state);
 		ret = sta_info_move_state(sta, sta->sta_state - 1);
 		if (ret) {
 			WARN_ON_ONCE(1);
@@ -1356,6 +1359,7 @@ EXPORT_SYMBOL(ieee80211_sta_set_buffered);
 int sta_info_move_state(struct sta_info *sta,
 			enum ieee80211_sta_state new_state)
 {
+
 	might_sleep();
 
 	if (sta->sta_state == new_state)
@@ -1386,11 +1390,6 @@ int sta_info_move_state(struct sta_info *sta,
 		WARN(1, "invalid state %d", new_state);
 		return -EINVAL;
 	}
-
-#ifdef CONFIG_MAC80211_VERBOSE_DEBUG
-	printk(KERN_DEBUG "%s: moving STA %pM to state %d\n",
-		sta->sdata->name, sta->sta.addr, new_state);
-#endif
 
 	/*
 	 * notify the driver before the actual changes so it can

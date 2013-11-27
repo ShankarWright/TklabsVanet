@@ -251,6 +251,7 @@ ath5k_hw_setup_4word_tx_desc(struct ath5k_hw *ah,
 	struct ath5k_hw_4w_tx_ctl *tx_ctl;
 	unsigned int frame_len;
 
+	
 	/*
 	 * Use local variables for these to reduce load/store access on
 	 * uncached memory
@@ -505,8 +506,10 @@ ath5k_hw_proc_4word_tx_status(struct ath5k_hw *ah,
 	txstat1 = ACCESS_ONCE(tx_status->tx_status_1);
 
 	/* No frame has been send or error */
-	if (unlikely(!(txstat1 & AR5K_DESC_TX_STATUS1_DONE)))
+	if (unlikely(!(txstat1 & AR5K_DESC_TX_STATUS1_DONE))) {
 		return -EINPROGRESS;
+	}
+		
 
 	txstat0 = ACCESS_ONCE(tx_status->tx_status_0);
 
@@ -532,6 +535,7 @@ ath5k_hw_proc_4word_tx_status(struct ath5k_hw *ah,
 
 	/* TX error */
 	if (!(txstat0 & AR5K_DESC_TX_STATUS0_FRAME_XMIT_OK)) {
+
 		if (txstat0 & AR5K_DESC_TX_STATUS0_EXCESSIVE_RETRIES)
 			ts->ts_status |= AR5K_TXERR_XRETRY;
 
@@ -540,7 +544,7 @@ ath5k_hw_proc_4word_tx_status(struct ath5k_hw *ah,
 
 		if (txstat0 & AR5K_DESC_TX_STATUS0_FILTERED)
 			ts->ts_status |= AR5K_TXERR_FILT;
-	}
+	} 
 
 	return 0;
 }
@@ -778,7 +782,7 @@ ath5k_hw_init_desc_functions(struct ath5k_hw *ah)
 		ah->ah_setup_tx_desc = ath5k_hw_setup_4word_tx_desc;
 		ah->ah_proc_tx_desc = ath5k_hw_proc_4word_tx_status;
 		ah->ah_proc_rx_desc = ath5k_hw_proc_5212_rx_status;
-	} else if (ah->ah_version <= AR5K_AR5211) {
+	} else if (ah->ah_version <= AR5K_AR5211) {		
 		ah->ah_setup_tx_desc = ath5k_hw_setup_2word_tx_desc;
 		ah->ah_proc_tx_desc = ath5k_hw_proc_2word_tx_status;
 		ah->ah_proc_rx_desc = ath5k_hw_proc_5210_rx_status;

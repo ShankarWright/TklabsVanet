@@ -427,6 +427,8 @@ static inline void sta_info_pre_move_state(struct sta_info *sta,
 {
 	int ret;
 
+	printk(KERN_INFO "sta_info_pre_move_state()\n"); /*JM*/
+
 	WARN_ON_ONCE(test_sta_flag(sta, WLAN_STA_INSERTED));
 
 	ret = sta_info_move_state(sta, new_state);

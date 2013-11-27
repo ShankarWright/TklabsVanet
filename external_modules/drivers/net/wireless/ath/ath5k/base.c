@@ -987,7 +987,7 @@ ath5k_beaconq_config(struct ath5k_hw *ah)
 {
 	struct ath5k_txq_info qi;
 	int ret;
-
+	ATH5K_INFO(ah, "ath5k_beaconq_config()\n");
 	ret = ath5k_hw_get_tx_queueprops(ah, ah->bhalq, &qi);
 	if (ret)
 		goto err;
@@ -1001,7 +1001,8 @@ ath5k_beaconq_config(struct ath5k_hw *ah)
 		qi.tqi_aifs = 0;
 		qi.tqi_cw_min = 0;
 		qi.tqi_cw_max = 0;
-	} else if (ah->opmode == NL80211_IFTYPE_ADHOC) {
+	} else if (ah->opmode == NL80211_IFTYPE_ADHOC ||
+				ah->opmode == NL80211_IFTYPE_WAVE) { /*JM*/
 		/*
 		 * Adhoc mode; backoff between 0 and (2 * cw_min).
 		 */
@@ -1337,6 +1338,8 @@ ath5k_receive_frame(struct ath5k_hw *ah, struct sk_buff *skb,
 {
 	struct ieee80211_rx_status *rxs;
 
+	//ATH5K_INFO (ah, "ath5k_receive_frame()\n"); /*JM*/
+
 	ath5k_remove_padding(skb);
 
 	rxs = IEEE80211_SKB_RXCB(skb);
@@ -1391,6 +1394,7 @@ ath5k_receive_frame(struct ath5k_hw *ah, struct sk_buff *skb,
 
 	ath5k_update_beacon_rssi(ah, skb, rs->rs_rssi);
 
+
 	/* check beacons in IBSS mode */
 	if (ah->opmode == NL80211_IFTYPE_ADHOC)
 		ath5k_check_ibss_tsf(ah, skb, rxs);
@@ -1408,6 +1412,8 @@ ath5k_receive_frame_ok(struct ath5k_hw *ah, struct ath5k_rx_status *rs)
 {
 	ah->stats.rx_all_count++;
 	ah->stats.rx_bytes_count += rs->rs_datalen;
+
+	printk(KERN_INFO "ath5k_receive_frame_ok()\n");
 
 	if (unlikely(rs->rs_status)) {
 		if (rs->rs_status & AR5K_RXERR_CRC)
@@ -1481,6 +1487,8 @@ ath5k_tasklet_rx(unsigned long data)
 	struct ath5k_desc *ds;
 	int ret;
 
+	printk(KERN_INFO "ath5k_tasklet_rx()\n");
+
 	spin_lock(&ah->rxbuflock);
 	if (list_empty(&ah->rxbuf)) {
 		ATH5K_WARN(ah, "empty rx buf pool\n");
@@ -1549,6 +1557,7 @@ ath5k_tx_queue(struct ieee80211_hw *hw, struct sk_buff *skb,
 	unsigned long flags;
 	int padsize;
 
+	//ATH5K_INFO (ah, "ath5k_tx_queue(hw = %p, skb = %p, txq = %p)\n", hw, skb, txq); /*JM remove*/
 	trace_ath5k_tx(ah, skb, txq);
 
 	/*
@@ -1666,6 +1675,8 @@ ath5k_tx_processq(struct ath5k_hw *ah, struct ath5k_txq *txq)
 	struct sk_buff *skb;
 	int ret;
 
+	//ATH5K_INFO (ah, "ath5k_tx_processq()\n");
+
 	spin_lock(&txq->lock);
 	list_for_each_entry_safe(bf, bf0, &txq->q, list) {
 
@@ -1691,7 +1702,7 @@ ath5k_tx_processq(struct ath5k_hw *ah, struct ath5k_txq *txq)
 			dma_unmap_single(ah->dev, bf->skbaddr, skb->len,
 					DMA_TO_DEVICE);
 			ath5k_tx_frame_completed(ah, skb, txq, &ts);
-		}
+		} 
 
 		/*
 		 * It's possible that the hardware can say the buffer is
@@ -1718,9 +1729,18 @@ ath5k_tasklet_tx(unsigned long data)
 	int i;
 	struct ath5k_hw *ah = (void *)data;
 
-	for (i = 0; i < AR5K_NUM_TX_QUEUES; i++)
-		if (ah->txqs[i].setup && (ah->ah_txq_isr_txok_all & BIT(i)))
+	//ATH5K_INFO (ah, "ath5k_tasklet_tx()\n");
+
+	for (i = 0; i < AR5K_NUM_TX_QUEUES; i++) {
+
+		if (ah->txqs[i].setup && (ah->ah_txq_isr_txok_all & BIT(i))) {
+			//ATH5K_INFO(ah, "ah->txqs[%d].setup && (ah->ah_txq_isr_txok_all & BIT(%d))\n", i, i);
 			ath5k_tx_processq(ah, &ah->txqs[i]);
+		} else {
+			//ATH5K_INFO(ah, "QCP!!\n");
+		}			
+	}
+		
 
 	ah->tx_pending = false;
 	ath5k_set_current_imask(ah);
@@ -2214,8 +2234,10 @@ ath5k_intr(int irq, void *dev_id)
 	do {
 		ath5k_hw_get_isr(ah, &status);	/* NB: clears IRQ too */
 
-		ATH5K_DBG(ah, ATH5K_DEBUG_INTR, "status 0x%x/0x%x\n",
-				status, ah->imask);
+		//ATH5K_DBG(ah, ATH5K_DEBUG_INTR, "status 0x%x/0x%x\n",
+		//		status, ah->imask);
+		//ATH5K_INFO(ah, "status 0x%x/0x%x\n",    /*JM*/
+		//		status, ah->imask);
 
 		/*
 		 * Fatal hw error -> Log and reset
@@ -2276,15 +2298,22 @@ ath5k_intr(int irq, void *dev_id)
 				ath5k_hw_update_tx_triglevel(ah, true);
 
 			/* RX -> Schedule rx tasklet */
-			if (status & (AR5K_INT_RXOK | AR5K_INT_RXERR))
+			if (status & (AR5K_INT_RXOK | AR5K_INT_RXERR)) {
+				ATH5K_INFO(ah, "rx irq\n");
 				ath5k_schedule_rx(ah);
+
+			}
+				
 
 			/* TX -> Schedule tx tasklet */
 			if (status & (AR5K_INT_TXOK
 					| AR5K_INT_TXDESC
 					| AR5K_INT_TXERR
-					| AR5K_INT_TXEOL))
+					| AR5K_INT_TXEOL)) {
+				ATH5K_INFO(ah, "tx irq\n");
 				ath5k_schedule_tx(ah);
+			}
+				
 
 			/* Missed beacon -> TODO
 			if (status & AR5K_INT_BMISS)
@@ -2455,7 +2484,8 @@ ath5k_init_ah(struct ath5k_hw *ah, const struct ath_bus_ops *bus_ops)
 		BIT(NL80211_IFTYPE_AP) |
 		BIT(NL80211_IFTYPE_STATION) |
 		BIT(NL80211_IFTYPE_ADHOC) |
-		BIT(NL80211_IFTYPE_MESH_POINT);
+		BIT(NL80211_IFTYPE_MESH_POINT) |
+		BIT(NL80211_IFTYPE_WAVE);
 
 	/* SW support for IBSS_RSN is provided by mac80211 */
 	hw->wiphy->flags |= WIPHY_FLAG_IBSS_RSN;

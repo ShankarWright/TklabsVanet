@@ -30,6 +30,8 @@ static struct net_device *ieee80211_add_iface(struct wiphy *wiphy, char *name,
 	struct ieee80211_sub_if_data *sdata;
 	int err;
 
+	printk(KERN_INFO "ieee80211_add_iface()\n");
+
 	err = ieee80211_if_add(local, name, &dev, type, params);
 	if (err)
 		return ERR_PTR(err);
@@ -57,6 +59,7 @@ static int ieee80211_change_iface(struct wiphy *wiphy,
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 	int ret;
 
+	printk(KERN_INFO "ieee80211_change_iface()\n");
 	ret = ieee80211_if_change_type(sdata, type);
 	if (ret)
 		return ret;
@@ -748,6 +751,8 @@ static int sta_apply_parameters(struct ieee80211_local *local,
 	struct ieee80211_sub_if_data *sdata = sta->sdata;
 	u32 mask, set;
 
+	printk(KERN_INFO "sta_apply_parameters()\n");
+
 	sband = local->hw.wiphy->bands[local->oper_channel->band];
 
 	mask = params->sta_flags_mask;
@@ -907,6 +912,8 @@ static int ieee80211_add_station(struct wiphy *wiphy, struct net_device *dev,
 	struct ieee80211_sub_if_data *sdata;
 	int err;
 	int layer2_update;
+
+	printk(KERN_INFO "ieee80211_add_station()\n"); /*JM*/
 
 	if (params->vlan) {
 		sdata = IEEE80211_DEV_TO_SUB_IF(params->vlan);
@@ -1605,14 +1612,18 @@ static int ieee80211_assoc(struct wiphy *wiphy, struct net_device *dev,
 	struct ieee80211_local *local = wiphy_priv(wiphy);
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 
+	printk(KERN_INFO "ieee80211_assoc()\n");
 	switch (ieee80211_get_channel_mode(local, sdata)) {
 	case CHAN_MODE_HOPPING:
+		printk(KERN_INFO "CHAN_MODE_HOPPING\n");
 		return -EBUSY;
 	case CHAN_MODE_FIXED:
+		printk(KERN_INFO "CHAN_MODE_FIXED\n");
 		if (local->oper_channel == req->bss->channel)
 			break;
 		return -EBUSY;
 	case CHAN_MODE_UNDEFINED:
+		printk(KERN_INFO "CHAN_MODE_UNDEFINED\n");
 		break;
 	}
 
@@ -2619,6 +2630,8 @@ static int ieee80211_probe_client(struct wiphy *wiphy, struct net_device *dev,
 	bool qos;
 	struct ieee80211_tx_info *info;
 	struct sta_info *sta;
+
+	printk(KERN_INFO "ieee80211_probe_client()\n");
 
 	rcu_read_lock();
 	sta = sta_info_get(sdata, peer);

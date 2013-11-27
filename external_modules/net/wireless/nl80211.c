@@ -1130,12 +1130,25 @@ static bool nl80211_can_set_dev_channel(struct wireless_dev *wdev)
 	 * whatever else is going on, so they behave as though
 	 * you tried setting the wiphy channel itself.
 	 */
-	return !wdev ||
-		wdev->iftype == NL80211_IFTYPE_AP ||
+
+	bool ret_value;
+	printk (KERN_INFO "nl80211_can_set_dev_channel()\n"); /*JM*/
+
+	if (!wdev) {
+		printk(KERN_INFO "wdev is null\n"); /*JM*/
+		return false;
+	}
+
+	ret_value = wdev->iftype == NL80211_IFTYPE_AP ||
 		wdev->iftype == NL80211_IFTYPE_WDS ||
 		wdev->iftype == NL80211_IFTYPE_MESH_POINT ||
 		wdev->iftype == NL80211_IFTYPE_MONITOR ||
 		wdev->iftype == NL80211_IFTYPE_P2P_GO;
+
+	if (ret_value == 0) {
+		printk(KERN_INFO "cannot set channel only AP, mesh, WDS allowed\n");  /*JM*/
+	}
+	return ret_value;
 }
 
 static int __nl80211_set_channel(struct cfg80211_registered_device *rdev,
@@ -1145,6 +1158,8 @@ static int __nl80211_set_channel(struct cfg80211_registered_device *rdev,
 	enum nl80211_channel_type channel_type = NL80211_CHAN_NO_HT;
 	u32 freq;
 	int result;
+
+	printk (KERN_INFO "__nl80211_set_channel()\n"); /*JM*/
 
 	if (!info->attrs[NL80211_ATTR_WIPHY_FREQ])
 		return -EINVAL;
@@ -1182,6 +1197,7 @@ static int nl80211_set_channel(struct sk_buff *skb, struct genl_info *info)
 	struct cfg80211_registered_device *rdev = info->user_ptr[0];
 	struct net_device *netdev = info->user_ptr[1];
 
+	printk (KERN_INFO "nl80211_set_channel()\n"); /*JM*/
 	return __nl80211_set_channel(rdev, netdev->ieee80211_ptr, info);
 }
 
@@ -1192,6 +1208,7 @@ static int nl80211_set_wds_peer(struct sk_buff *skb, struct genl_info *info)
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	const u8 *bssid;
 
+	printk (KERN_INFO "nl80211_set_wds_peer()\n"); /*JM*/
 	if (!info->attrs[NL80211_ATTR_MAC])
 		return -EINVAL;
 
@@ -1221,6 +1238,7 @@ static int nl80211_set_wiphy(struct sk_buff *skb, struct genl_info *info)
 	u32 frag_threshold = 0, rts_threshold = 0;
 	u8 coverage_class = 0;
 
+	printk (KERN_INFO "nl80211_set_wiphy()\n"); /*JM*/
 	/*
 	 * Try to find the wiphy and netdev. Normally this
 	 * function shouldn't need the netdev, but this is
@@ -1635,20 +1653,32 @@ static int nl80211_set_interface(struct sk_buff *skb, struct genl_info *info)
 	u32 _flags, *flags = NULL;
 	bool change = false;
 
+	printk(KERN_INFO "nl80211_set_interface()\n"); /*JM*/
+
 	memset(&params, 0, sizeof(params));
 
 	otype = ntype = dev->ieee80211_ptr->iftype;
 
+	printk (KERN_INFO "otype = %d\n", otype); /*JM*/
+
 	if (info->attrs[NL80211_ATTR_IFTYPE]) {
+		printk (KERN_INFO "info->attrs[NL80211_ATTR_IFTYPE]\n"); /*JM*/
 		ntype = nla_get_u32(info->attrs[NL80211_ATTR_IFTYPE]);
-		if (otype != ntype)
+		if (otype != ntype) {
 			change = true;
-		if (ntype > NL80211_IFTYPE_MAX)
+		}
+			
+		if (ntype > NL80211_IFTYPE_MAX) {
 			return -EINVAL;
+		}
+			
 	}
 
 	if (info->attrs[NL80211_ATTR_MESH_ID]) {
+		
 		struct wireless_dev *wdev = dev->ieee80211_ptr;
+
+		printk (KERN_INFO "info->attrs[NL80211_ATTR_MESH_ID]\n"); /*JM*/
 
 		if (ntype != NL80211_IFTYPE_MESH_POINT)
 			return -EINVAL;
@@ -1666,16 +1696,20 @@ static int nl80211_set_interface(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	if (info->attrs[NL80211_ATTR_4ADDR]) {
+		printk (KERN_INFO "info->attrs[NL80211_ATTR_4ADDR]\n"); /*JM*/
 		params.use_4addr = !!nla_get_u8(info->attrs[NL80211_ATTR_4ADDR]);
 		change = true;
 		err = nl80211_valid_4addr(rdev, dev, params.use_4addr, ntype);
 		if (err)
 			return err;
 	} else {
+		printk (KERN_INFO "!info->attrs[NL80211_ATTR_4ADDR]\n"); /*JM*/
+		printk (KERN_INFO "params.use_4addr = -1;\n"); /*JM*/
 		params.use_4addr = -1;
 	}
 
 	if (info->attrs[NL80211_ATTR_MNTR_FLAGS]) {
+		printk (KERN_INFO "info->attrs[NL80211_ATTR_MNTR_FLAGS]\n"); /*JM*/
 		if (ntype != NL80211_IFTYPE_MONITOR)
 			return -EINVAL;
 		err = parse_monitor_flags(info->attrs[NL80211_ATTR_MNTR_FLAGS],
@@ -1687,8 +1721,11 @@ static int nl80211_set_interface(struct sk_buff *skb, struct genl_info *info)
 		change = true;
 	}
 
-	if (change)
+	if (change) {
+		printk (KERN_INFO "changing interface\n");
 		err = cfg80211_change_iface(rdev, dev, ntype, flags, &params);
+	}
+		
 	else
 		err = 0;
 

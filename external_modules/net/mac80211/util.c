@@ -1183,6 +1183,8 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 	struct sta_info *sta;
 	int res, i;
 
+	printk(KERN_INFO "ieee80211_reconfig()\n");
+
 #ifdef CONFIG_PM
 	if (local->suspended)
 		local->resuming = true;

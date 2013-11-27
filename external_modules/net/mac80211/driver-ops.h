@@ -96,6 +96,7 @@ static inline int drv_add_interface(struct ieee80211_local *local,
 {
 	int ret;
 
+	printk(KERN_INFO "drv_add_interface()\n"); /*JM*/
 	might_sleep();
 
 	if (WARN_ON(sdata->vif.type == NL80211_IFTYPE_AP_VLAN ||
@@ -158,6 +159,7 @@ static inline void drv_bss_info_changed(struct ieee80211_local *local,
 					struct ieee80211_bss_conf *info,
 					u32 changed)
 {
+	printk (KERN_INFO "drv_bss_info_changed()\n");
 	might_sleep();
 
 	check_sdata_in_driver(sdata);

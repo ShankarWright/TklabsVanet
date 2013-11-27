@@ -799,6 +799,7 @@ int cfg80211_change_iface(struct cfg80211_registered_device *rdev,
 	int err;
 	enum nl80211_iftype otype = dev->ieee80211_ptr->iftype;
 
+	printk (KERN_INFO "cfg80211_change_iface()\n");
 	ASSERT_RDEV_LOCK(rdev);
 
 	/* don't support changing VLANs, you just re-create them */
@@ -806,15 +807,21 @@ int cfg80211_change_iface(struct cfg80211_registered_device *rdev,
 		return -EOPNOTSUPP;
 
 	if (!rdev->ops->change_virtual_intf ||
-	    !(rdev->wiphy.interface_modes & (1 << ntype)))
+	    !(rdev->wiphy.interface_modes & (1 << ntype))) {
 		return -EOPNOTSUPP;
+	}
+		
 
 	/* if it's part of a bridge, reject changing type to station/ibss */
 	if ((dev->priv_flags & IFF_BRIDGE_PORT) &&
 	    (ntype == NL80211_IFTYPE_ADHOC ||
 	     ntype == NL80211_IFTYPE_STATION ||
-	     ntype == NL80211_IFTYPE_P2P_CLIENT))
+	     ntype == NL80211_IFTYPE_P2P_CLIENT ||
+	     ntype == NL80211_IFTYPE_WAVE)) {
+		
 		return -EBUSY;
+	}
+		
 
 	if (ntype != otype && netif_running(dev)) {
 		err = cfg80211_can_change_interface(rdev, dev->ieee80211_ptr,
@@ -836,6 +843,11 @@ int cfg80211_change_iface(struct cfg80211_registered_device *rdev,
 			break;
 		case NL80211_IFTYPE_MESH_POINT:
 			/* mesh should be handled? */
+
+			break;
+
+		case NL80211_IFTYPE_WAVE:
+			/*JM probably nothing to do here*/
 			break;
 		default:
 			break;

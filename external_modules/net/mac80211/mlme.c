@@ -398,6 +398,8 @@ static void ieee80211_send_assoc(struct ieee80211_sub_if_data *sdata)
 	struct ieee80211_supported_band *sband;
 	u32 rates = 0;
 
+	printk(KERN_INFO "ieee80211_send_assoc()\n"); /*JM*/
+
 	lockdep_assert_held(&ifmgd->mtx);
 
 	sband = local->hw.wiphy->bands[local->oper_channel->band];
@@ -1791,6 +1793,8 @@ ieee80211_rx_mgmt_auth(struct ieee80211_sub_if_data *sdata,
 
 	lockdep_assert_held(&ifmgd->mtx);
 
+	printk(KERN_INFO "ieee80211_rx_mgmt_auth()\n"); /*JM*/
+
 	if (len < 24 + 6)
 		return RX_MGMT_NONE;
 
@@ -2002,6 +2006,7 @@ static bool ieee80211_assoc_success(struct ieee80211_sub_if_data *sdata,
 	int err;
 	u16 ap_ht_cap_flags;
 
+	printk(KERN_INFO "ieee80211_assoc_success()\n");	/*JM*/
 	/* AssocResp and ReassocResp have identical structure */
 
 	aid = le16_to_cpu(mgmt->u.assoc_resp.aid);
@@ -3058,6 +3063,8 @@ static int ieee80211_prep_connection(struct ieee80211_sub_if_data *sdata,
 	struct sta_info *sta;
 	bool have_sta = false;
 	int err;
+
+	printk(KERN_INFO "ieee80211_prep_connection()\n");
 
 	if (WARN_ON(!ifmgd->auth_data && !ifmgd->assoc_data))
 		return -EINVAL;

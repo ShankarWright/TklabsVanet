@@ -192,18 +192,24 @@ void ieee80211_bss_info_change_notify(struct ieee80211_sub_if_data *sdata,
 	struct ieee80211_local *local = sdata->local;
 	static const u8 zero[ETH_ALEN] = { 0 };
 
+	printk (KERN_INFO "ieee80211_bss_info_change_notify()\n"); /*JM*/
+
 	if (!changed)
 		return;
 
 	if (sdata->vif.type == NL80211_IFTYPE_STATION) {
 		sdata->vif.bss_conf.bssid = sdata->u.mgd.bssid;
-	} else if (sdata->vif.type == NL80211_IFTYPE_ADHOC)
+	} else if (sdata->vif.type == NL80211_IFTYPE_ADHOC) {
 		sdata->vif.bss_conf.bssid = sdata->u.ibss.bssid;
-	else if (sdata->vif.type == NL80211_IFTYPE_AP)
+	} else if (sdata->vif.type == NL80211_IFTYPE_WAVE) {
+		printk(KERN_INFO "NL80211_IFTYPE_WAVE\n");	/*JM*/
+		printk(KERN_INFO "setting bssid to %pM", sdata->u.wbss.bssid); /*JM*/
+		sdata->vif.bss_conf.bssid = sdata->u.wbss.bssid;
+	} else if (sdata->vif.type == NL80211_IFTYPE_AP) {
 		sdata->vif.bss_conf.bssid = sdata->vif.addr;
-	else if (sdata->vif.type == NL80211_IFTYPE_WDS)
+	} else if (sdata->vif.type == NL80211_IFTYPE_WDS) {
 		sdata->vif.bss_conf.bssid = NULL;
-	else if (ieee80211_vif_is_mesh(&sdata->vif)) {
+	} else if (ieee80211_vif_is_mesh(&sdata->vif)) {
 		sdata->vif.bss_conf.bssid = zero;
 	} else {
 		WARN_ON(1);
@@ -215,6 +221,7 @@ void ieee80211_bss_info_change_notify(struct ieee80211_sub_if_data *sdata,
 	case NL80211_IFTYPE_ADHOC:
 	case NL80211_IFTYPE_WDS:
 	case NL80211_IFTYPE_MESH_POINT:
+	case NL80211_IFTYPE_WAVE:
 		break;
 	default:
 		/* do not warn to simplify caller in scan.c */
@@ -242,6 +249,8 @@ void ieee80211_bss_info_change_notify(struct ieee80211_sub_if_data *sdata,
 				sdata->vif.bss_conf.enable_beacon =
 					!!sdata->u.ibss.presp;
 				break;
+			case NL80211_IFTYPE_WAVE:
+				printk(KERN_INFO, "should beacon be enabled for WBSS??\n"); /*JM*/
 #ifdef CONFIG_MAC80211_MESH
 			case NL80211_IFTYPE_MESH_POINT:
 				sdata->vif.bss_conf.enable_beacon =

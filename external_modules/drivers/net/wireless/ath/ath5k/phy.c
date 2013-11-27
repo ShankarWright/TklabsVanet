@@ -1442,7 +1442,7 @@ ath5k_hw_channel(struct ath5k_hw *ah,
 {
 	int ret;
 
-	printk(KERN_DEBUG "Todd2 - ath5k_hw_channel - channel frequency (%u MHz)", channel->center_freq);
+	ATH5K_INFO(ah, "Todd2 - ath5k_hw_channel - channel frequency (%u MHz)", channel->center_freq);
 
 
 	/*
@@ -1472,6 +1472,7 @@ ath5k_hw_channel(struct ath5k_hw *ah,
 		ret = ath5k_hw_rf2425_channel(ah, channel);
 		break;
 	default:
+		ATH5K_INFO(ah, "RADIO RF5112\n");
 		ret = ath5k_hw_rf5112_channel(ah, channel);
 		break;
 	}

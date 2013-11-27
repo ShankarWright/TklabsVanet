@@ -233,6 +233,8 @@ ieee80211_rx_monitor(struct ieee80211_local *local, struct sk_buff *origskb,
 	struct net_device *prev_dev = NULL;
 	int present_fcs_len = 0;
 
+	printk(KERN_INFO "ieee80211_rx_monitor()\n");	
+
 	/*
 	 * First, we may need to make a copy of the skb because
 	 *  (1) we need to modify it for radiotap (if not present), and
@@ -2806,6 +2808,7 @@ static int prepare_for_handlers(struct ieee80211_rx_data *rx,
 	u8 *bssid = ieee80211_get_bssid(hdr, skb->len, sdata->vif.type);
 	int multicast = is_multicast_ether_addr(hdr->addr1);
 
+	printk(KERN_INFO "prepare_for_handlers()\n"); /*JM*/
 	switch (sdata->vif.type) {
 	case NL80211_IFTYPE_STATION:
 		if (!bssid && !sdata->u.mgd.use_4addr)
@@ -2831,6 +2834,8 @@ static int prepare_for_handlers(struct ieee80211_rx_data *rx,
 		} else if (!multicast &&
 			   compare_ether_addr(sdata->vif.addr,
 					      hdr->addr1) != 0) {
+			printk (KERN_INFO "sdata->vif.addr: %pM, addr1: %pM, addr2: %pM, addr3: %pM, addr4: %pM\n", 
+				sdata->vif.addr, hdr->addr1, hdr->addr2, hdr->addr3, hdr->addr4); /*JM*/
 			if (!(sdata->dev->flags & IFF_PROMISC))
 				return 0;
 			status->rx_flags &= ~IEEE80211_RX_RA_MATCH;
@@ -2843,7 +2848,23 @@ static int prepare_for_handlers(struct ieee80211_rx_data *rx,
 			ieee80211_ibss_rx_no_sta(sdata, bssid, hdr->addr2,
 						 BIT(rate_idx));
 		}
+		printk(KERN_INFO "status->rx_flags = %X\n", status->rx_flags);
 		break;
+	case NL80211_IFTYPE_WAVE:
+		
+		printk (KERN_INFO "check BSSID: %pM", bssid);
+		printk (KERN_INFO "sdata->vif.addr: %pM, addr1: %pM, addr2: %pM, addr3: %pM, addr4: %pM\n", 
+				sdata->vif.addr, hdr->addr1, hdr->addr2, hdr->addr3, hdr->addr4);
+		if (!multicast && compare_ether_addr(sdata->vif.addr, hdr->addr1) != 0) {
+			if (!(sdata->dev->flags & IFF_PROMISC))
+				return 0;
+			printk(KERN_INFO "status->rx_flags &= ~IEEE80211_RX_RA_MATCH\n");
+			status->rx_flags &= ~IEEE80211_RX_RA_MATCH;
+		}
+		printk(KERN_INFO "mactime: %llu, band = %d, freq = %d, antenna = %d, rate_idx = %d, flag = %X\n",
+						status->mactime, status->band, status->freq, status->antenna, status->rate_idx, status->flag);
+		printk(KERN_INFO "status->rx_flags = %X\n", status->rx_flags);
+		return 0;
 	case NL80211_IFTYPE_MESH_POINT:
 		if (!multicast &&
 		    compare_ether_addr(sdata->vif.addr,
@@ -2907,6 +2928,7 @@ static bool ieee80211_prepare_and_rx_handle(struct ieee80211_rx_data *rx,
 	struct ieee80211_hdr *hdr = (void *)skb->data;
 	int prepares;
 
+	printk(KERN_INFO "ieee80211_prepare_and_rx_handle()\n");
 	rx->skb = skb;
 	status->rx_flags |= IEEE80211_RX_RA_MATCH;
 	prepares = prepare_for_handlers(rx, hdr);
@@ -2948,6 +2970,7 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
 	struct sta_info *sta, *tmp, *prev_sta;
 	int err = 0;
 
+	printk(KERN_INFO "__ieee80211_rx_handle_packet()\n");
 	fc = ((struct ieee80211_hdr *)skb->data)->frame_control;
 	memset(&rx, 0, sizeof(rx));
 	rx.skb = skb;
@@ -3058,8 +3081,11 @@ void ieee80211_rx(struct ieee80211_hw *hw, struct sk_buff *skb)
 
 	WARN_ON_ONCE(softirq_count() == 0);
 
+	printk(KERN_INFO "ieee80211_rx()\n");
+
+	printk(KERN_INFO "BAND: %d\n",  status->band);
 	if (WARN_ON(status->band < 0 ||
-		    status->band >= IEEE80211_NUM_BANDS))
+		    status->band >= IEEE80211_NUM_BANDS)) 
 		goto drop;
 
 	sband = local->hw.wiphy->bands[status->band];

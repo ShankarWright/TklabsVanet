@@ -552,6 +552,37 @@ struct ieee80211_if_ibss {
 	} state;
 };
 
+struct ieee80211_if_wbss {
+	struct timer_list timer;
+
+	struct mutex mtx;
+
+	u32 basic_rates;
+
+	bool timer_running;
+
+	bool fixed_channel;
+	bool privacy;
+
+	bool control_port;
+
+	u8 bssid[ETH_ALEN] __aligned(2);
+	u8 ssid[IEEE80211_MAX_SSID_LEN];
+	u8 ssid_len, ie_len;
+	u8 *ie;
+	struct ieee80211_channel *channel;
+	enum nl80211_channel_type channel_type;
+
+	unsigned long ibss_join_req;
+	/* probe response/beacon for IBSS */
+	struct sk_buff __rcu *presp;
+	struct sk_buff *skb;
+
+	spinlock_t incomplete_lock;
+	struct list_head incomplete_stations;
+
+};
+
 struct ieee80211_if_mesh {
 	struct timer_list housekeeping_timer;
 	struct timer_list mesh_path_timer;
@@ -715,6 +746,7 @@ struct ieee80211_sub_if_data {
 		struct ieee80211_if_vlan vlan;
 		struct ieee80211_if_managed mgd;
 		struct ieee80211_if_ibss ibss;
+		struct ieee80211_if_wbss wbss;
 		struct ieee80211_if_mesh mesh;
 		u32 mntr_flags;
 	} u;
@@ -739,9 +771,9 @@ struct ieee80211_sub_if_data *vif_to_sdata(struct ieee80211_vif *p)
 }
 
 enum sdata_queue_type {
-	IEEE80211_SDATA_QUEUE_TYPE_FRAME	= 0,
-	IEEE80211_SDATA_QUEUE_AGG_START		= 1,
-	IEEE80211_SDATA_QUEUE_AGG_STOP		= 2,
+	IEEE80211_SDATA_QUEUE_TYPE_FRAME	= 0, 
+	IEEE80211_SDATA_QUEUE_AGG_START		= 1, 
+	IEEE80211_SDATA_QUEUE_AGG_STOP		= 2, 
 };
 
 enum {
@@ -1225,6 +1257,11 @@ void ieee80211_ibss_restart(struct ieee80211_sub_if_data *sdata);
 void ieee80211_ibss_work(struct ieee80211_sub_if_data *sdata);
 void ieee80211_ibss_rx_queued_mgmt(struct ieee80211_sub_if_data *sdata,
 				   struct sk_buff *skb);
+
+/* WBSS code */
+
+void ieee80211_wbss_setup_sdata(struct ieee80211_sub_if_data *sdata);
+void ieee80211_wbss_work(struct ieee80211_sub_if_data *sdata);
 
 /* mesh code */
 void ieee80211_mesh_work(struct ieee80211_sub_if_data *sdata);

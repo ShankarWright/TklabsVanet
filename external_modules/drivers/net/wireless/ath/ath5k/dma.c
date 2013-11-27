@@ -130,6 +130,7 @@ ath5k_hw_start_tx_dma(struct ath5k_hw *ah, unsigned int queue)
 	u32 tx_queue;
 
 	AR5K_ASSERT_ENTRY(queue, ah->ah_capabilities.cap_queues.q_tx_num);
+	//ATH5K_INFO(ah, "ath5k_hw_start_tx_dma()\n"); /*JM*/
 
 	/* Return if queue is declared inactive */
 	if (ah->ah_txq[queue].tqi_type == AR5K_TX_QUEUE_INACTIVE)
@@ -151,7 +152,7 @@ ath5k_hw_start_tx_dma(struct ath5k_hw *ah, unsigned int queue)
 					AR5K_BSR);
 			break;
 		case AR5K_TX_QUEUE_CAB:
-			tx_queue |= AR5K_CR_TXE1 & ~AR5K_CR_TXD1;
+			tx_queue |= AR5K_CR_TXE1 & ~AR5K_CR_TXD1;		
 			ath5k_hw_reg_write(ah, AR5K_BCR_TQ1FV | AR5K_BCR_TQ1V |
 				AR5K_BCR_BDMAE, AR5K_BSR);
 			break;
@@ -526,6 +527,8 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 {
 	u32 data = 0;
 
+	ATH5K_INFO(ah, "ath5k_hw_get_isr()\n");
+
 	/*
 	 * Read interrupt status from Primary Interrupt
 	 * Register.
@@ -643,21 +646,30 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 		/* We treat TXOK,TXDESC, TXERR and TXEOL
 		 * the same way (schedule the tx tasklet)
 		 * so we track them all together per queue */
-		if (pisr & AR5K_ISR_TXOK)
+		if (pisr & AR5K_ISR_TXOK) {
 			ah->ah_txq_isr_txok_all |= AR5K_REG_MS(sisr0,
-						AR5K_SISR0_QCU_TXOK);
-
-		if (pisr & AR5K_ISR_TXDESC)
+						AR5K_SISR0_QCU_TXOK);		
+		}
+			
+		if (pisr & AR5K_ISR_TXDESC) {
+			
 			ah->ah_txq_isr_txok_all |= AR5K_REG_MS(sisr0,
 						AR5K_SISR0_QCU_TXDESC);
+			
+		}
+			
 
-		if (pisr & AR5K_ISR_TXERR)
+		if (pisr & AR5K_ISR_TXERR) {
 			ah->ah_txq_isr_txok_all |= AR5K_REG_MS(sisr1,
 						AR5K_SISR1_QCU_TXERR);
+		}
+			
 
-		if (pisr & AR5K_ISR_TXEOL)
+		if (pisr & AR5K_ISR_TXEOL) {		
 			ah->ah_txq_isr_txok_all |= AR5K_REG_MS(sisr1,
 						AR5K_SISR1_QCU_TXEOL);
+		}
+			
 
 		/* Currently this is not much usefull since we treat
 		 * all queues the same way if we get a TXURN (update

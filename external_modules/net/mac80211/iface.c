@@ -108,7 +108,10 @@ static int ieee80211_check_concurrent_iface(struct ieee80211_sub_if_data *sdata,
 	list_for_each_entry(nsdata, &local->interfaces, list) {
 		struct net_device *ndev = nsdata->dev;
 
-		if (ndev != dev && ieee80211_sdata_running(nsdata)) {
+		printk(KERN_INFO "interface type = %d\n", nsdata->vif.type);
+		if (ndev != dev && ieee80211_sdata_running(nsdata)) { 
+			/*JM it only goes in here if the dev already exists
+			 *or if the device is up*/
 			/*
 			 * Allow only a single IBSS interface to be up at any
 			 * time. This is restricted because beacon distribution
@@ -213,6 +216,9 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 	case NL80211_IFTYPE_ADHOC:
 		/* no special treatment */
 		break;
+	case NL80211_IFTYPE_WAVE:
+		printk(KERN_INFO "NL80211_IFTYPE_WAVE\n");
+		break;
 	case NL80211_IFTYPE_UNSPECIFIED:
 	case NUM_NL80211_IFTYPES:
 	case NL80211_IFTYPE_P2P_CLIENT:
@@ -224,8 +230,9 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 
 	if (local->open_count == 0) {
 		res = drv_start(local);
-		if (res)
+		if (res) 
 			goto err_del_bss;
+	
 		if (local->ops->napi_poll)
 			napi_enable(&local->napi);
 		/* we're brought up, everything changes */
@@ -275,7 +282,9 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 		netif_carrier_on(dev);
 		break;
 	default:
+		printk(KERN_INFO "default\n"); /*JM*/
 		if (coming_up) {
+			printk(KERN_INFO "coming_up\n"); /*JM*/
 			res = drv_add_interface(local, sdata);
 			if (res)
 				goto err_stop;
@@ -294,7 +303,7 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 		ieee80211_bss_info_change_notify(sdata, changed);
 
 		if (sdata->vif.type == NL80211_IFTYPE_STATION ||
-		    sdata->vif.type == NL80211_IFTYPE_ADHOC)
+		    sdata->vif.type == NL80211_IFTYPE_ADHOC) 
 			netif_carrier_off(dev);
 		else
 			netif_carrier_on(dev);
@@ -376,11 +385,14 @@ static int ieee80211_open(struct net_device *dev)
 	int err;
 
 	/* fail early if user set an invalid address */
-	if (!is_valid_ether_addr(dev->dev_addr))
+	if (!is_valid_ether_addr(dev->dev_addr)) {
+		printk(KERN_INFO "invalid ethernet address\n"); /*JM*/
 		return -EADDRNOTAVAIL;
+	}
+		
 
 	err = ieee80211_check_concurrent_iface(sdata, sdata->vif.type);
-	if (err)
+	if (err) 
 		return err;
 
 	return ieee80211_do_open(dev, true);
@@ -728,11 +740,15 @@ static void ieee80211_iface_work(struct work_struct *work)
 	struct sta_info *sta;
 	struct ieee80211_ra_tid *ra_tid;
 
-	if (!ieee80211_sdata_running(sdata))
+	if (!ieee80211_sdata_running(sdata)) {
 		return;
+	}
+		
 
-	if (local->scanning)
+	if (local->scanning) {
 		return;
+	}
+		
 
 	/*
 	 * ieee80211_queue_work() should have picked up most cases,
@@ -746,17 +762,22 @@ static void ieee80211_iface_work(struct work_struct *work)
 	while ((skb = skb_dequeue(&sdata->skb_queue))) {
 		struct ieee80211_mgmt *mgmt = (void *)skb->data;
 
-		if (skb->pkt_type == IEEE80211_SDATA_QUEUE_AGG_START) {
-			ra_tid = (void *)&skb->cb;
+		if (skb->pkt_type == IEEE80211_SDATA_QUEUE_AGG_START) {		/*JM defines its own packet types*/
+			printk(KERN_INFO "IEEE80211_SDATA_QUEUE_AGG_START\n"); 	/*in ieee80211_i.h instead of using*/  
+			ra_tid = (void *)&skb->cb;								/*the ones defined in include/linux/if_packet.h*/	   	
 			ieee80211_start_tx_ba_cb(&sdata->vif, ra_tid->ra,
 						 ra_tid->tid);
 		} else if (skb->pkt_type == IEEE80211_SDATA_QUEUE_AGG_STOP) {
+			printk(KERN_INFO "IEEE80211_SDATA_QUEUE_AGG_STOP\n"); 	/*JM*/
 			ra_tid = (void *)&skb->cb;
 			ieee80211_stop_tx_ba_cb(&sdata->vif, ra_tid->ra,
 						ra_tid->tid);
 		} else if (ieee80211_is_action(mgmt->frame_control) &&
 			   mgmt->u.action.category == WLAN_CATEGORY_BACK) {
+
 			int len = skb->len;
+			printk(KERN_INFO "ieee80211_is_action(mgmt->frame_control) ==  true\n"); /*JM*/
+			printk(KERN_INFO "mgmt->u.action.category == WLAN_CATEGORY_BACK\n"); /*JM*/
 
 			mutex_lock(&local->sta_mtx);
 			sta = sta_info_get_bss(sdata, mgmt->sa);
@@ -782,6 +803,8 @@ static void ieee80211_iface_work(struct work_struct *work)
 			mutex_unlock(&local->sta_mtx);
 		} else if (ieee80211_is_data_qos(mgmt->frame_control)) {
 			struct ieee80211_hdr *hdr = (void *)mgmt;
+			printk(KERN_INFO "ieee80211_is_data_qos(mgmt->frame_control) ==  true\n"); /*JM*/
+
 			/*
 			 * So the frame isn't mgmt, but frame_control
 			 * is at the right place anyway, of course, so
@@ -816,6 +839,7 @@ static void ieee80211_iface_work(struct work_struct *work)
 			ieee80211_sta_rx_queued_mgmt(sdata, skb);
 			break;
 		case NL80211_IFTYPE_ADHOC:
+			printk(KERN_INFO "sdata->vif.type == NL80211_IFTYPE_ADHOC\n");
 			ieee80211_ibss_rx_queued_mgmt(sdata, skb);
 			break;
 		case NL80211_IFTYPE_MESH_POINT:
@@ -838,6 +862,9 @@ static void ieee80211_iface_work(struct work_struct *work)
 		break;
 	case NL80211_IFTYPE_ADHOC:
 		ieee80211_ibss_work(sdata);
+		break;
+	case NL80211_IFTYPE_WAVE:
+		ieee80211_wbss_work(sdata);
 		break;
 	case NL80211_IFTYPE_MESH_POINT:
 		if (!ieee80211_vif_is_mesh(&sdata->vif))
@@ -896,6 +923,10 @@ static void ieee80211_setup_sdata(struct ieee80211_sub_if_data *sdata,
 		break;
 	case NL80211_IFTYPE_ADHOC:
 		ieee80211_ibss_setup_sdata(sdata);
+		break;
+	case NL80211_IFTYPE_WAVE:
+		printk(KERN_INFO "setup wave iface\n");
+		ieee80211_wbss_setup_sdata(sdata);
 		break;
 	case NL80211_IFTYPE_MESH_POINT:
 		if (ieee80211_vif_is_mesh(&sdata->vif))
@@ -997,13 +1028,18 @@ int ieee80211_if_change_type(struct ieee80211_sub_if_data *sdata,
 
 	ASSERT_RTNL();
 
-	if (type == ieee80211_vif_type_p2p(&sdata->vif))
+	if (type == ieee80211_vif_type_p2p(&sdata->vif)) {
 		return 0;
+	}
+		
 
 	/* Setting ad-hoc mode on non-IBSS channel is not supported. */
 	if (sdata->local->oper_channel->flags & IEEE80211_CHAN_NO_IBSS &&
-	    type == NL80211_IFTYPE_ADHOC)
+	    type == NL80211_IFTYPE_ADHOC) {
+		printk (KERN_INFO "setting ad-hoc mode on non-IBSS channel is not supported\n"); /*JM*/
 		return -EOPNOTSUPP;
+	}
+		
 
 	if (ieee80211_sdata_running(sdata)) {
 		ret = ieee80211_runtime_change_iftype(sdata, type);

@@ -74,9 +74,10 @@ ath5k_add_interface(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
 	int ret;
 	struct ath5k_vif *avf = (void *)vif->drv_priv;
 
+	printk (KERN_INFO "ath5k_add_interface()\n"); /*JM*/
 	mutex_lock(&ah->lock);
 
-	if ((vif->type == NL80211_IFTYPE_AP ||
+	if ((vif->type == NL80211_IFTYPE_AP || /* JM do we have to check for WAVE??*/
 	     vif->type == NL80211_IFTYPE_ADHOC)
 	    && (ah->num_ap_vifs + ah->num_adhoc_vifs) >= ATH_BCBUF) {
 		ret = -ELNRNG;
@@ -88,7 +89,7 @@ ath5k_add_interface(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
 	 * We would need to operate the HW in ad-hoc mode to allow TSF updates
 	 * for the IBSS, but this breaks with additional AP or STA interfaces
 	 * at the moment. */
-	if (ah->num_adhoc_vifs ||
+	if (ah->num_adhoc_vifs ||				/*JM I think the same should be checked for WAVE*/
 	    (ah->nvifs && vif->type == NL80211_IFTYPE_ADHOC)) {
 		ATH5K_ERR(ah, "Only one single ad-hoc interface is allowed.\n");
 		ret = -ELNRNG;
@@ -100,6 +101,7 @@ ath5k_add_interface(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
 	case NL80211_IFTYPE_STATION:
 	case NL80211_IFTYPE_ADHOC:
 	case NL80211_IFTYPE_MESH_POINT:
+	case NL80211_IFTYPE_WAVE:
 		avf->opmode = vif->type;
 		break;
 	default:
@@ -113,7 +115,7 @@ ath5k_add_interface(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
 	/* Assign the vap/adhoc to a beacon xmit slot. */
 	if ((avf->opmode == NL80211_IFTYPE_AP) ||
 	    (avf->opmode == NL80211_IFTYPE_ADHOC) ||
-	    (avf->opmode == NL80211_IFTYPE_MESH_POINT)) {
+	    (avf->opmode == NL80211_IFTYPE_MESH_POINT)) { /*JM is this required for WAVE?? */
 		int slot;
 
 		WARN_ON(list_empty(&ah->bcbuf));
@@ -253,30 +255,42 @@ ath5k_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	struct ath5k_hw *ah = hw->priv;
 	struct ath_common *common = ath5k_hw_common(ah);
 	unsigned long flags;
+	int change_count = 0; /*JM remove just for debugging*/
 
 	mutex_lock(&ah->lock);
 
+	printk (KERN_INFO "ath5k_bss_info_changed()\n"); /*JM*/
+
 	if (changes & BSS_CHANGED_BSSID) {
+		printk (KERN_INFO "BSS_CHANGED_BSSID\n");
 		/* Cache for later use during resets */
 		memcpy(common->curbssid, bss_conf->bssid, ETH_ALEN);
 		common->curaid = 0;
 		ath5k_hw_set_bssid(ah);
 		mmiowb();
+		change_count++;
 	}
 
-	if (changes & BSS_CHANGED_BEACON_INT)
+	if (changes & BSS_CHANGED_BEACON_INT) {
+		printk (KERN_INFO "BSS_CHANGED_BEACON_INT\n"); /*JM*/
 		ah->bintval = bss_conf->beacon_int;
+		change_count++;
+	}
+		
 
 	if (changes & BSS_CHANGED_ERP_SLOT) {
 		int slot_time;
+		printk (KERN_INFO "BSS_CHANGED_ERP_SLOT\n"); /*JM*/
 
 		ah->ah_short_slot = bss_conf->use_short_slot;
 		slot_time = ath5k_hw_get_default_slottime(ah) +
 			    3 * ah->ah_coverage_class;
 		ath5k_hw_set_ifs_intervals(ah, slot_time);
+		change_count++;
 	}
 
 	if (changes & BSS_CHANGED_ASSOC) {
+		printk (KERN_INFO "BSS_CHANGED_ASSOC\n"); /*JM*/
 		avf->assoc = bss_conf->assoc;
 		if (bss_conf->assoc)
 			ah->assoc = bss_conf->assoc;
@@ -295,21 +309,34 @@ ath5k_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 			ath5k_hw_set_bssid(ah);
 			/* Once ANI is available you would start it here */
 		}
+		change_count++;
 	}
 
 	if (changes & BSS_CHANGED_BEACON) {
+		printk (KERN_INFO "BSS_CHANGED_BEACON\n"); /*JM */
 		spin_lock_irqsave(&ah->block, flags);
 		ath5k_beacon_update(hw, vif);
 		spin_unlock_irqrestore(&ah->block, flags);
+		change_count++;
 	}
 
-	if (changes & BSS_CHANGED_BEACON_ENABLED)
+	if (changes & BSS_CHANGED_BEACON_ENABLED) {
+		printk (KERN_INFO "BSS_CHANGED_BEACON_ENABLED\n"); /*JM */
 		ah->enable_beacon = bss_conf->enable_beacon;
+		change_count++;
+	}
+		
 
 	if (changes & (BSS_CHANGED_BEACON | BSS_CHANGED_BEACON_ENABLED |
-		       BSS_CHANGED_BEACON_INT))
+		       BSS_CHANGED_BEACON_INT)) {
+		printk (KERN_INFO "changing beacon config\n"); /*JM */
 		ath5k_beacon_config(ah);
-
+		change_count++;
+	}
+		
+	
+	printk (KERN_INFO "%d changes\n", change_count);
+	
 	mutex_unlock(&ah->lock);
 }
 
@@ -375,6 +402,7 @@ ath5k_configure_filter(struct ieee80211_hw *hw, unsigned int changed_flags,
 	u32 mfilt[2], rfilt;
 	struct ath5k_vif_iter_data iter_data; /* to count STA interfaces */
 
+	ATH5K_INFO(ah, "ath5k_configure_filter()\n");
 	mutex_lock(&ah->lock);
 
 	mfilt[0] = multicast;
@@ -437,6 +465,7 @@ ath5k_configure_filter(struct ieee80211_hw *hw, unsigned int changed_flags,
 		break;
 	case NL80211_IFTYPE_AP:
 	case NL80211_IFTYPE_ADHOC:
+	case NL80211_IFTYPE_WAVE:	/*JM not sure if WAVE should allow this*/ 
 		rfilt |= AR5K_RX_FILTER_PROBEREQ |
 			 AR5K_RX_FILTER_BEACON;
 		break;
@@ -463,6 +492,7 @@ ath5k_configure_filter(struct ieee80211_hw *hw, unsigned int changed_flags,
 	}
 
 	/* Set filters */
+	ATH5K_INFO(ah, "setting filters %X\n", rfilt);
 	ath5k_hw_set_rx_filter(ah, rfilt);
 
 	/* Set multicast bits */

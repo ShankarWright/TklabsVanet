@@ -1219,6 +1219,8 @@ static bool ieee80211_tx_frags(struct ieee80211_local *local,
 	struct ieee80211_tx_info *info;
 	unsigned long flags;
 
+	//printk(KERN_INFO "ieee80211_tx_frags()\n"); /*JM*/
+
 	skb_queue_walk_safe(skbs, skb, tmp) {
 		int q = skb_get_queue_mapping(skb);
 
@@ -1729,6 +1731,8 @@ netdev_tx_t ieee80211_subif_start_xmit(struct sk_buff *skb,
 	u32 info_flags = 0;
 	u16 info_id = 0;
 
+	//printk(KERN_INFO "ieee80211_subif_start_xmit()\n");
+
 	if (unlikely(skb->len < ETH_HLEN)) {
 		ret = NETDEV_TX_OK;
 		goto fail;
@@ -1898,10 +1902,16 @@ netdev_tx_t ieee80211_subif_start_xmit(struct sk_buff *skb,
 		}
 		break;
 	case NL80211_IFTYPE_ADHOC:
-		/* DA SA BSSID */
 		memcpy(hdr.addr1, skb->data, ETH_ALEN);
 		memcpy(hdr.addr2, skb->data + ETH_ALEN, ETH_ALEN);
 		memcpy(hdr.addr3, sdata->u.ibss.bssid, ETH_ALEN);
+		hdrlen = 24;
+		break;
+	case NL80211_IFTYPE_WAVE:	/*JM this might be different for WAVE*/
+		/* DA SA BSSID */		/*for now I do the same as ad-hoc*/
+		memcpy(hdr.addr1, skb->data, ETH_ALEN);
+		memcpy(hdr.addr2, skb->data + ETH_ALEN, ETH_ALEN);
+		memcpy(hdr.addr3, sdata->u.wbss.bssid, ETH_ALEN);
 		hdrlen = 24;
 		break;
 	default:
