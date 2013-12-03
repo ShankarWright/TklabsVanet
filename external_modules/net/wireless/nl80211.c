@@ -1162,11 +1162,17 @@ static int __nl80211_set_channel(struct cfg80211_registered_device *rdev,
 
 	printk (KERN_INFO "__nl80211_set_channel()\n"); /*JM*/
 
-	if (!info->attrs[NL80211_ATTR_WIPHY_FREQ])
+	if (!info->attrs[NL80211_ATTR_WIPHY_FREQ]) {
+		printk(KERN_INFO "!info->attrs[NL80211_ATTR_WIPHY_FREQ]\n");
 		return -EINVAL;
+	}
+		
 
-	if (!nl80211_can_set_dev_channel(wdev))
+	if (!nl80211_can_set_dev_channel(wdev)) {
+		printk(KERN_INFO "NOT SUPPORTED\n");
 		return -EOPNOTSUPP;
+	}
+		
 
 	if (info->attrs[NL80211_ATTR_WIPHY_CHANNEL_TYPE]) {
 		channel_type = nla_get_u32(info->attrs[
@@ -1179,6 +1185,8 @@ static int __nl80211_set_channel(struct cfg80211_registered_device *rdev,
 	}
 
 	freq = nla_get_u32(info->attrs[NL80211_ATTR_WIPHY_FREQ]);
+
+	printk(KERN_INFO "Setting to frecuency: %d\n", freq);
 
 	mutex_lock(&rdev->devlist_mtx);
 	if (wdev) {
@@ -1273,17 +1281,10 @@ static int nl80211_set_wiphy(struct sk_buff *skb, struct genl_info *info)
 		result = 0;
 
 		mutex_lock(&rdev->mtx);
-	} else if (netif_running(netdev) &&
-		   nl80211_can_set_dev_channel(netdev->ieee80211_ptr)) {
-		printk(KERN_INFO "netif_running && nl80211_can_set_dev_channel\n");
+	} else {
+		
 		wdev = netdev->ieee80211_ptr;
-	}
-		
-	else {
-		printk(KERN_INFO "setting wdev to null\n");
-		wdev = NULL;
-	}
-		
+	}	
 
 	/*
 	 * end workaround code, by now the rdev is available

@@ -1491,19 +1491,24 @@ static int ieee80211_set_channel(struct wiphy *wiphy,
 	enum nl80211_channel_type old_oper_type;
 	enum nl80211_channel_type old_vif_oper_type= NL80211_CHAN_NO_HT;
 
+	printk(KERN_INFO "ieee80211_set_channel()\n"); /*JM*/
+
 	if (netdev)
 		sdata = IEEE80211_DEV_TO_SUB_IF(netdev);
 
 	switch (ieee80211_get_channel_mode(local, NULL)) {
 	case CHAN_MODE_HOPPING:
+		printk(KERN_INFO "CHAN_MODE_HOPPING\n");
 		return -EBUSY;
 	case CHAN_MODE_FIXED:
+		printk(KERN_INFO "CHAN_MODE_FIXED\n");
 		if (local->oper_channel != chan)
 			return -EBUSY;
 		if (!sdata && local->_oper_channel_type == channel_type)
 			return 0;
 		break;
 	case CHAN_MODE_UNDEFINED:
+		printk(KERN_INFO "CHAN_MODE_UNDEFINED\n");
 		break;
 	}
 

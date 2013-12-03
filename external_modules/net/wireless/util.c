@@ -81,9 +81,11 @@ struct ieee80211_channel *__ieee80211_get_channel(struct wiphy *wiphy,
 	struct ieee80211_supported_band *sband;
 	int i;
 
+	printk(KERN_INFO "ieee80211_get_channel()\n"); /*JM*/
+
 	for (band = 0; band < IEEE80211_NUM_BANDS; band++) {
 		sband = wiphy->bands[band];
-
+		printk(KERN_INFO "BAND: %d\n", band);
 		if (!sband)
 			continue;
 

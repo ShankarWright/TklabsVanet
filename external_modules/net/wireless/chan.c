@@ -17,6 +17,8 @@ rdev_freq_to_chan(struct cfg80211_registered_device *rdev,
 	struct ieee80211_channel *chan;
 	struct ieee80211_sta_ht_cap *ht_cap;
 
+	printk(KERN_INFO "rdev_freq_to_chan()\n");  /*JM*/
+
 	chan = ieee80211_get_channel(&rdev->wiphy, freq);
 
 	/* Primary channel not allowed */
@@ -85,6 +87,8 @@ int cfg80211_set_freq(struct cfg80211_registered_device *rdev,
 	struct ieee80211_channel *chan;
 	int result;
 
+	printk(KERN_INFO "cfg80211_set_freq()\n");
+
 	if (wdev && wdev->iftype == NL80211_IFTYPE_MONITOR)
 		wdev = NULL;
 
@@ -99,6 +103,7 @@ int cfg80211_set_freq(struct cfg80211_registered_device *rdev,
 		return -EOPNOTSUPP;
 
 	chan = rdev_freq_to_chan(rdev, freq, channel_type);
+	printk(KERN_INFO "band: %d, channel freq: %d\n", chan->band, chan->center_freq);
 	if (!chan)
 		return -EINVAL;
 
@@ -122,7 +127,7 @@ int cfg80211_set_freq(struct cfg80211_registered_device *rdev,
 		default:
 			break;
 		}
-	}
+	
 
 	result = rdev->ops->set_channel(&rdev->wiphy,
 					wdev ? wdev->netdev : NULL,

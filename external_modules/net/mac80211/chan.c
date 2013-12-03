@@ -28,6 +28,8 @@ __ieee80211_get_channel_mode(struct ieee80211_local *local,
 			if (!sdata->u.mgd.associated)
 				continue;
 			break;
+		case NL80211_IFTYPE_WAVE:
+			continue;
 		case NL80211_IFTYPE_ADHOC:
 			if (!sdata->u.ibss.ssid_len)
 				continue;
@@ -71,6 +73,8 @@ bool ieee80211_set_channel_type(struct ieee80211_local *local,
 	struct ieee80211_sub_if_data *tmp;
 	enum nl80211_channel_type superchan = NL80211_CHAN_NO_HT;
 	bool result;
+
+	printk(KERN_INFO "ieee80211_set_channel_type()\n");
 
 	mutex_lock(&local->iflist_mtx);
 
