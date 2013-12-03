@@ -324,8 +324,12 @@ int ieee80211_data_to_8023(struct sk_buff *skb, const u8 *addr,
 	u8 dst[ETH_ALEN];
 	u8 src[ETH_ALEN] __aligned(2);
 
-	if (unlikely(!ieee80211_is_data_present(hdr->frame_control)))
+	//printk (KERN_INFO "cfg80211: ieee80211_data_to_8023()\n"); /*JM*/
+
+	if (unlikely(!ieee80211_is_data_present(hdr->frame_control))) {
 		return -1;
+	}
+		
 
 	hdrlen = ieee80211_hdrlen(hdr->frame_control);
 
@@ -397,8 +401,10 @@ int ieee80211_data_to_8023(struct sk_buff *skb, const u8 *addr,
 		}
 		break;
 	case cpu_to_le16(0):
-		if (iftype != NL80211_IFTYPE_ADHOC &&
-		    iftype != NL80211_IFTYPE_STATION)
+													/*In case of WAVE, STATION and AD-HOC*/
+		if (iftype != NL80211_IFTYPE_ADHOC &&		/*both bits are set to 0*/
+		    iftype != NL80211_IFTYPE_STATION &&
+		    iftype != NL80211_IFTYPE_WAVE)
 				return -1;
 		break;
 	}
@@ -872,6 +878,7 @@ int cfg80211_change_iface(struct cfg80211_registered_device *rdev,
 				break;
 			/* fall through */
 		case NL80211_IFTYPE_P2P_CLIENT:
+		case NL80211_IFTYPE_WAVE: /*JM same as ADHOC??*/
 		case NL80211_IFTYPE_ADHOC:
 			dev->priv_flags |= IFF_DONT_BRIDGE;
 			break;

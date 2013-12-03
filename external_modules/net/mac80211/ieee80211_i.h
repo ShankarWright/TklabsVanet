@@ -573,7 +573,6 @@ struct ieee80211_if_wbss {
 	struct ieee80211_channel *channel;
 	enum nl80211_channel_type channel_type;
 
-	unsigned long ibss_join_req;
 	/* probe response/beacon for IBSS */
 	struct sk_buff __rcu *presp;
 	struct sk_buff *skb;

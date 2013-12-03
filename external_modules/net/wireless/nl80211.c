@@ -1143,7 +1143,8 @@ static bool nl80211_can_set_dev_channel(struct wireless_dev *wdev)
 		wdev->iftype == NL80211_IFTYPE_WDS ||
 		wdev->iftype == NL80211_IFTYPE_MESH_POINT ||
 		wdev->iftype == NL80211_IFTYPE_MONITOR ||
-		wdev->iftype == NL80211_IFTYPE_P2P_GO;
+		wdev->iftype == NL80211_IFTYPE_P2P_GO || 
+		wdev->iftype == NL80211_IFTYPE_WAVE; /*WAVE should also be allowed*/
 
 	if (ret_value == 0) {
 		printk(KERN_INFO "cannot set channel only AP, mesh, WDS allowed\n");  /*JM*/
@@ -1273,10 +1274,16 @@ static int nl80211_set_wiphy(struct sk_buff *skb, struct genl_info *info)
 
 		mutex_lock(&rdev->mtx);
 	} else if (netif_running(netdev) &&
-		   nl80211_can_set_dev_channel(netdev->ieee80211_ptr))
+		   nl80211_can_set_dev_channel(netdev->ieee80211_ptr)) {
+		printk(KERN_INFO "netif_running && nl80211_can_set_dev_channel\n");
 		wdev = netdev->ieee80211_ptr;
-	else
+	}
+		
+	else {
+		printk(KERN_INFO "setting wdev to null\n");
 		wdev = NULL;
+	}
+		
 
 	/*
 	 * end workaround code, by now the rdev is available

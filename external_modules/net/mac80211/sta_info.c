@@ -1383,6 +1383,9 @@ int sta_info_move_state(struct sta_info *sta,
 			return -EINVAL;
 		break;
 	case IEEE80211_STA_AUTHORIZED:
+		if (sta->sdata->vif.type == NL80211_IFTYPE_WAVE) {
+			break;	/*if interface is WAVE it does not have to be */
+		}			/*authenticated or associated to be authorized*/
 		if (sta->sta_state != IEEE80211_STA_ASSOC)
 			return -EINVAL;
 		break;

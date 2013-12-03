@@ -987,7 +987,7 @@ ath5k_beaconq_config(struct ath5k_hw *ah)
 {
 	struct ath5k_txq_info qi;
 	int ret;
-	ATH5K_INFO(ah, "ath5k_beaconq_config()\n");
+	//ATH5K_INFO(ah, "ath5k_beaconq_config()\n"); /*JM*/
 	ret = ath5k_hw_get_tx_queueprops(ah, ah->bhalq, &qi);
 	if (ret)
 		goto err;
@@ -1413,7 +1413,7 @@ ath5k_receive_frame_ok(struct ath5k_hw *ah, struct ath5k_rx_status *rs)
 	ah->stats.rx_all_count++;
 	ah->stats.rx_bytes_count += rs->rs_datalen;
 
-	printk(KERN_INFO "ath5k_receive_frame_ok()\n");
+	//printk(KERN_INFO "ath5k_receive_frame_ok()\n");
 
 	if (unlikely(rs->rs_status)) {
 		if (rs->rs_status & AR5K_RXERR_CRC)
@@ -1487,7 +1487,7 @@ ath5k_tasklet_rx(unsigned long data)
 	struct ath5k_desc *ds;
 	int ret;
 
-	printk(KERN_INFO "ath5k_tasklet_rx()\n");
+	//printk(KERN_INFO "ath5k_tasklet_rx()\n"); /*JM*/
 
 	spin_lock(&ah->rxbuflock);
 	if (list_empty(&ah->rxbuf)) {
@@ -2299,7 +2299,7 @@ ath5k_intr(int irq, void *dev_id)
 
 			/* RX -> Schedule rx tasklet */
 			if (status & (AR5K_INT_RXOK | AR5K_INT_RXERR)) {
-				ATH5K_INFO(ah, "rx irq\n");
+				//ATH5K_INFO(ah, "rx irq\n"); /*JM*/
 				ath5k_schedule_rx(ah);
 
 			}
@@ -2310,7 +2310,7 @@ ath5k_intr(int irq, void *dev_id)
 					| AR5K_INT_TXDESC
 					| AR5K_INT_TXERR
 					| AR5K_INT_TXEOL)) {
-				ATH5K_INFO(ah, "tx irq\n");
+				//ATH5K_INFO(ah, "tx irq\n"); /*JM*/
 				ath5k_schedule_tx(ah);
 			}
 				

@@ -1183,7 +1183,7 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 	struct sta_info *sta;
 	int res, i;
 
-	printk(KERN_INFO "ieee80211_reconfig()\n");
+	//printk(KERN_INFO "ieee80211_reconfig()\n"); /*JM*/
 
 #ifdef CONFIG_PM
 	if (local->suspended)
@@ -1301,6 +1301,9 @@ int ieee80211_reconfig(struct ieee80211_local *local)
 			ieee80211_bss_info_change_notify(sdata, changed);
 			mutex_unlock(&sdata->u.mgd.mtx);
 			break;
+		case NL80211_IFTYPE_WAVE:
+			printk(KERN_INFO "reconfigure wave interface\n"); /*JM not sure if anything*/
+			break;											  /*has to be done here*/	
 		case NL80211_IFTYPE_ADHOC:
 			changed |= BSS_CHANGED_IBSS;
 			/* fall through */

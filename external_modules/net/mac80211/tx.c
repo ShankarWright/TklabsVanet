@@ -284,6 +284,9 @@ ieee80211_tx_h_check_assoc(struct ieee80211_tx_data *tx)
 	if (tx->sdata->vif.type == NL80211_IFTYPE_WDS)
 		return TX_CONTINUE;
 
+	if (tx->sdata->vif.type == NL80211_IFTYPE_WAVE)
+		return TX_CONTINUE;
+
 	if (tx->sdata->vif.type == NL80211_IFTYPE_MESH_POINT)
 		return TX_CONTINUE;
 
@@ -1138,6 +1141,8 @@ ieee80211_tx_prepare(struct ieee80211_sub_if_data *sdata,
 	int tid;
 	u8 *qc;
 
+	//printk(KERN_INFO "ieee80211_tx_prepare()\n");
+
 	memset(tx, 0, sizeof(*tx));
 	tx->skb = skb;
 	tx->local = local;
@@ -1270,6 +1275,8 @@ static bool __ieee80211_tx(struct ieee80211_local *local,
 	bool result = true;
 	__le16 fc;
 
+	//printk(KERN_INFO "__ieee80211_tx()\n");
+
 	if (WARN_ON(skb_queue_empty(skbs)))
 		return true;
 
@@ -1305,6 +1312,7 @@ static bool __ieee80211_tx(struct ieee80211_local *local,
 		result = ieee80211_tx_frags(local, vif, pubsta, skbs,
 					    txpending);
 
+	//printk (KERN_INFO "__ieee80211_tx result = %d\n", result);
 	ieee80211_tpt_led_trig_tx(local, fc, led_len);
 	ieee80211_led_tx(local, 1);
 
@@ -1382,6 +1390,8 @@ static bool ieee80211_tx(struct ieee80211_sub_if_data *sdata,
 	bool result = true;
 	int led_len;
 
+	//printk (KERN_INFO "ieee80211_tx()\n");
+
 	if (unlikely(skb->len < 10)) {
 		dev_kfree_skb(skb);
 		return true;
@@ -1403,9 +1413,11 @@ static bool ieee80211_tx(struct ieee80211_sub_if_data *sdata,
 	tx.channel = local->hw.conf.channel;
 	info->band = tx.channel->band;
 
-	if (!invoke_tx_handlers(&tx))
+	if (!invoke_tx_handlers(&tx)) {
 		result = __ieee80211_tx(local, &tx.skbs, led_len,
 					tx.sta, txpending);
+	} 
+		
  out:
 	rcu_read_unlock();
 	return result;
@@ -1449,6 +1461,8 @@ void ieee80211_xmit(struct ieee80211_sub_if_data *sdata, struct sk_buff *skb)
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *) skb->data;
 	int headroom;
 	bool may_encrypt;
+
+	//printk(KERN_INFO "ieee80211_xmit()\n");
 
 	rcu_read_lock();
 
@@ -1578,6 +1592,8 @@ netdev_tx_t ieee80211_monitor_start_xmit(struct sk_buff *skb,
 	struct ieee80211_sub_if_data *tmp_sdata, *sdata;
 	u16 len_rthdr;
 	int hdrlen;
+
+	//printk(KERN_INFO "ieee80211_monitor_start_xmit()\n");
 
 	/*
 	 * Frame injection is not allowed if beaconing is not allowed
@@ -1909,6 +1925,7 @@ netdev_tx_t ieee80211_subif_start_xmit(struct sk_buff *skb,
 		break;
 	case NL80211_IFTYPE_WAVE:	/*JM this might be different for WAVE*/
 		/* DA SA BSSID */		/*for now I do the same as ad-hoc*/
+		//printk(KERN_INFO "ieee80211_subif_start_xmit() NL80211_IFTYPE_WAVE\n"); /*JM needs to be removed*/
 		memcpy(hdr.addr1, skb->data, ETH_ALEN);
 		memcpy(hdr.addr2, skb->data + ETH_ALEN, ETH_ALEN);
 		memcpy(hdr.addr3, sdata->u.wbss.bssid, ETH_ALEN);
@@ -1951,6 +1968,7 @@ netdev_tx_t ieee80211_subif_start_xmit(struct sk_buff *skb,
 	 */
 	if (unlikely(!ieee80211_vif_is_mesh(&sdata->vif) &&
 		     !is_multicast_ether_addr(hdr.addr1) && !authorized &&
+		     sdata->vif.type != NL80211_IFTYPE_WAVE &&	/*JM may be a hack, I am allowing everything to go through*/
 		     (cpu_to_be16(ethertype) != sdata->control_port_protocol ||
 		      compare_ether_addr(sdata->vif.addr, skb->data + ETH_ALEN)))) {
 #ifdef CONFIG_MAC80211_VERBOSE_DEBUG
@@ -2724,6 +2742,7 @@ EXPORT_SYMBOL(ieee80211_get_buffered_bc);
 void ieee80211_tx_skb_tid(struct ieee80211_sub_if_data *sdata,
 			  struct sk_buff *skb, int tid)
 {
+	//printk(KERN_INFO "ieee80211_tx_skb_tid()\n");
 	skb_set_mac_header(skb, 0);
 	skb_set_network_header(skb, 0);
 	skb_set_transport_header(skb, 0);

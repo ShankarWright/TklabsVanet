@@ -233,7 +233,7 @@ ieee80211_rx_monitor(struct ieee80211_local *local, struct sk_buff *origskb,
 	struct net_device *prev_dev = NULL;
 	int present_fcs_len = 0;
 
-	printk(KERN_INFO "ieee80211_rx_monitor()\n");	
+	//printk(KERN_INFO "ieee80211_rx_monitor()\n");		/*JM*/
 
 	/*
 	 * First, we may need to make a copy of the skb because
@@ -421,7 +421,7 @@ ieee80211_rx_h_passive_scan(struct ieee80211_rx_data *rx)
 	struct ieee80211_local *local = rx->local;
 	struct ieee80211_rx_status *status = IEEE80211_SKB_RXCB(rx->skb);
 	struct sk_buff *skb = rx->skb;
-
+	//printk(KERN_INFO "ieee80211_rx_h_passive_scan()\n"); /*JM*/
 	if (likely(!(status->rx_flags & IEEE80211_RX_IN_SCAN) &&
 		   !local->sched_scanning))
 		return RX_CONTINUE;
@@ -765,6 +765,7 @@ static void ieee80211_rx_reorder_ampdu(struct ieee80211_rx_data *rx)
 	u16 sc;
 	u8 tid, ack_policy;
 
+	//printk(KERN_INFO "ieee80211_rx_reorder_ampdu()\n"); /*JM*/
 	if (!ieee80211_is_data_qos(hdr->frame_control))
 		goto dont_reorder;
 
@@ -833,6 +834,8 @@ ieee80211_rx_h_check(struct ieee80211_rx_data *rx)
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)rx->skb->data;
 	struct ieee80211_rx_status *status = IEEE80211_SKB_RXCB(rx->skb);
 
+	//printk(KERN_INFO "ieee80211_rx_h_check()\n"); /*JM*/
+
 	/* Drop duplicate 802.11 retransmissions (IEEE 802.11 Chap. 9.2.9) */
 	if (rx->sta && !is_multicast_ether_addr(hdr->addr1)) {
 		if (unlikely(ieee80211_has_retry(hdr->frame_control) &&
@@ -848,6 +851,7 @@ ieee80211_rx_h_check(struct ieee80211_rx_data *rx)
 	}
 
 	if (unlikely(rx->skb->len < 16)) {
+
 		I802_DEBUG_INC(rx->local->rx_handlers_drop_short);
 		return RX_DROP_MONITOR;
 	}
@@ -867,6 +871,7 @@ ieee80211_rx_h_check(struct ieee80211_rx_data *rx)
 	if (unlikely((ieee80211_is_data(hdr->frame_control) ||
 		      ieee80211_is_pspoll(hdr->frame_control)) &&
 		     rx->sdata->vif.type != NL80211_IFTYPE_ADHOC &&
+		     rx->sdata->vif.type != NL80211_IFTYPE_WAVE &&
 		     rx->sdata->vif.type != NL80211_IFTYPE_WDS &&
 		     (!rx->sta || !test_sta_flag(rx->sta, WLAN_STA_ASSOC)))) {
 		/*
@@ -1588,9 +1593,18 @@ ieee80211_rx_h_defragment(struct ieee80211_rx_data *rx)
 static int
 ieee80211_802_1x_port_control(struct ieee80211_rx_data *rx)
 {
+	struct ieee80211_vif *vif = &(rx->sdata->vif);
+	/*if in WAVE mode, there are no authorized stations, or
+	 *all stations are autorized*/
+	if (vif->type == NL80211_IFTYPE_WAVE) {
+		return 0;
+	}
+
 	if (unlikely(!rx->sta ||
-	    !test_sta_flag(rx->sta, WLAN_STA_AUTHORIZED)))
+	    !test_sta_flag(rx->sta, WLAN_STA_AUTHORIZED))) {
+		
 		return -EACCES;
+	}		
 
 	return 0;
 }
@@ -1612,8 +1626,10 @@ ieee80211_drop_unencrypted(struct ieee80211_rx_data *rx, __le16 fc)
 	if (unlikely(!ieee80211_has_protected(fc) &&
 		     !ieee80211_is_nullfunc(fc) &&
 		     ieee80211_is_data(fc) &&
-		     (rx->key || rx->sdata->drop_unencrypted)))
+		     (rx->key || rx->sdata->drop_unencrypted))) {
 		return -EACCES;
+	}
+		
 
 	return 0;
 }
@@ -1681,6 +1697,8 @@ __ieee80211_data_to_8023(struct ieee80211_rx_data *rx, bool *port_control)
 	struct ethhdr *ehdr;
 	int ret;
 
+	//printk(KERN_INFO "__ieee80211_data_to_8023()\n"); /*JM*/
+
 	*port_control = false;
 	if (ieee80211_has_a4(hdr->frame_control) &&
 	    sdata->vif.type == NL80211_IFTYPE_AP_VLAN && !sdata->u.vlan.sta)
@@ -1700,8 +1718,10 @@ __ieee80211_data_to_8023(struct ieee80211_rx_data *rx, bool *port_control)
 		return -1;
 
 	ret = ieee80211_data_to_8023(rx->skb, sdata->vif.addr, sdata->vif.type);
-	if (ret < 0)
+	if (ret < 0) {
 		return ret;
+	}
+		
 
 	ehdr = (struct ethhdr *) rx->skb->data;
 	if (ehdr->h_proto == rx->sdata->control_port_protocol)
@@ -1727,12 +1747,16 @@ static bool ieee80211_frame_allowed(struct ieee80211_rx_data *rx, __le16 fc)
 	 */
 	if (ehdr->h_proto == rx->sdata->control_port_protocol &&
 	    (compare_ether_addr(ehdr->h_dest, rx->sdata->vif.addr) == 0 ||
-	     compare_ether_addr(ehdr->h_dest, pae_group_addr) == 0))
+	     compare_ether_addr(ehdr->h_dest, pae_group_addr) == 0)) {
 		return true;
+	}
+		
 
 	if (ieee80211_802_1x_port_control(rx) ||
-	    ieee80211_drop_unencrypted(rx, fc))
+	    ieee80211_drop_unencrypted(rx, fc)) {
 		return false;
+	}
+		
 
 	return true;
 }
@@ -2032,11 +2056,17 @@ ieee80211_rx_h_data(struct ieee80211_rx_data *rx)
 	bool port_control;
 	int err;
 
-	if (unlikely(!ieee80211_is_data(hdr->frame_control)))
-		return RX_CONTINUE;
+	//printk (KERN_INFO "ieee80211_rx_h_data()\n"); /*JM*/
 
-	if (unlikely(!ieee80211_is_data_present(hdr->frame_control)))
+	if (unlikely(!ieee80211_is_data(hdr->frame_control))) {
+		return RX_CONTINUE;
+	}
+		
+
+	if (unlikely(!ieee80211_is_data_present(hdr->frame_control))) {
 		return RX_DROP_MONITOR;
+	}
+		
 
 	/*
 	 * Send unexpected-4addr-frame event to hostapd. For older versions,
@@ -2052,11 +2082,17 @@ ieee80211_rx_h_data(struct ieee80211_rx_data *rx)
 	}
 
 	err = __ieee80211_data_to_8023(rx, &port_control);
-	if (unlikely(err))
+	if (unlikely(err)) {
+		printk (KERN_DEBUG "error __ieee80211_data_to_8023\n");
 		return RX_DROP_UNUSABLE;
+	}
+		
 
-	if (!ieee80211_frame_allowed(rx, fc))
+	if (!ieee80211_frame_allowed(rx, fc)) {
+		printk(KERN_DEBUG "!ieee80211_frame_allowed(rx, fc)\n");
 		return RX_DROP_MONITOR;
+	}
+		
 
 	if (rx->sdata->vif.type == NL80211_IFTYPE_AP_VLAN &&
 	    unlikely(port_control) && sdata->bss) {
@@ -2081,7 +2117,7 @@ ieee80211_rx_h_data(struct ieee80211_rx_data *rx)
 	}
 
 	ieee80211_deliver_skb(rx);
-
+	
 	return RX_QUEUED;
 }
 
@@ -2095,6 +2131,8 @@ ieee80211_rx_h_ctrl(struct ieee80211_rx_data *rx)
 	struct tid_ampdu_rx *tid_agg_rx;
 	u16 start_seq_num;
 	u16 tid;
+
+	//printk(KERN_INFO "ieee80211_rx_h_ctrl()\n"); /*JM*/
 
 	if (likely(!ieee80211_is_ctl(bar->frame_control)))
 		return RX_CONTINUE;
@@ -2138,6 +2176,7 @@ ieee80211_rx_h_ctrl(struct ieee80211_rx_data *rx)
 	 * so we can drop all remaining control frames to
 	 * cooked monitor interfaces.
 	 */
+
 	return RX_DROP_MONITOR;
 }
 
@@ -2652,8 +2691,10 @@ static void ieee80211_rx_cooked_monitor(struct ieee80211_rx_data *rx,
 static void ieee80211_rx_handlers_result(struct ieee80211_rx_data *rx,
 					 ieee80211_rx_result res)
 {
+	//printk(KERN_INFO "ieee80211_rx_handlers_result()\n"); /*JM*/
 	switch (res) {
 	case RX_DROP_MONITOR:
+		//printk(KERN_INFO "RX_DROP_MONITOR\n"); /*JM*/
 		I802_DEBUG_INC(rx->sdata->local->rx_handlers_drop);
 		if (rx->sta)
 			rx->sta->rx_dropped++;
@@ -2662,7 +2703,7 @@ static void ieee80211_rx_handlers_result(struct ieee80211_rx_data *rx,
 		struct ieee80211_rate *rate = NULL;
 		struct ieee80211_supported_band *sband;
 		struct ieee80211_rx_status *status;
-
+		//printk(KERN_INFO "RX_CONTINUE\n"); /*JM*/
 		status = IEEE80211_SKB_RXCB((rx->skb));
 
 		sband = rx->local->hw.wiphy->bands[status->band];
@@ -2673,12 +2714,14 @@ static void ieee80211_rx_handlers_result(struct ieee80211_rx_data *rx,
 		break;
 		}
 	case RX_DROP_UNUSABLE:
+		//printk(KERN_INFO "RX_DROP_UNUSABLE\n"); /*JM*/
 		I802_DEBUG_INC(rx->sdata->local->rx_handlers_drop);
 		if (rx->sta)
 			rx->sta->rx_dropped++;
 		dev_kfree_skb(rx->skb);
 		break;
 	case RX_QUEUED:
+		//printk(KERN_INFO "RX_QUEUED\n"); /*JM*/
 		I802_DEBUG_INC(rx->sdata->local->rx_handlers_queued);
 		break;
 	}
@@ -2689,6 +2732,8 @@ static void ieee80211_rx_handlers(struct ieee80211_rx_data *rx)
 	ieee80211_rx_result res = RX_DROP_MONITOR;
 	struct sk_buff *skb;
 
+	//printk(KERN_INFO "ieee80211_rx_handlers()\n"); /*JM*/
+
 #define CALL_RXH(rxh)			\
 	do {				\
 		res = rxh(rx);		\
@@ -2697,7 +2742,7 @@ static void ieee80211_rx_handlers(struct ieee80211_rx_data *rx)
 	} while (0);
 
 	spin_lock(&rx->local->rx_skb_queue.lock);
-	if (rx->local->running_rx_handler)
+	if (rx->local->running_rx_handler) 
 		goto unlock;
 
 	rx->local->running_rx_handler = true;
@@ -2747,6 +2792,7 @@ static void ieee80211_rx_handlers(struct ieee80211_rx_data *rx)
 static void ieee80211_invoke_rx_handlers(struct ieee80211_rx_data *rx)
 {
 	ieee80211_rx_result res = RX_DROP_MONITOR;
+	//printk(KERN_INFO "ieee80211_invoke_rx_handlers()\n"); /*JM*/
 
 #define CALL_RXH(rxh)			\
 	do {				\
@@ -2808,7 +2854,7 @@ static int prepare_for_handlers(struct ieee80211_rx_data *rx,
 	u8 *bssid = ieee80211_get_bssid(hdr, skb->len, sdata->vif.type);
 	int multicast = is_multicast_ether_addr(hdr->addr1);
 
-	printk(KERN_INFO "prepare_for_handlers()\n"); /*JM*/
+	//printk(KERN_INFO "prepare_for_handlers()\n"); /*JM*/
 	switch (sdata->vif.type) {
 	case NL80211_IFTYPE_STATION:
 		if (!bssid && !sdata->u.mgd.use_4addr)
@@ -2834,8 +2880,6 @@ static int prepare_for_handlers(struct ieee80211_rx_data *rx,
 		} else if (!multicast &&
 			   compare_ether_addr(sdata->vif.addr,
 					      hdr->addr1) != 0) {
-			printk (KERN_INFO "sdata->vif.addr: %pM, addr1: %pM, addr2: %pM, addr3: %pM, addr4: %pM\n", 
-				sdata->vif.addr, hdr->addr1, hdr->addr2, hdr->addr3, hdr->addr4); /*JM*/
 			if (!(sdata->dev->flags & IFF_PROMISC))
 				return 0;
 			status->rx_flags &= ~IEEE80211_RX_RA_MATCH;
@@ -2848,23 +2892,22 @@ static int prepare_for_handlers(struct ieee80211_rx_data *rx,
 			ieee80211_ibss_rx_no_sta(sdata, bssid, hdr->addr2,
 						 BIT(rate_idx));
 		}
-		printk(KERN_INFO "status->rx_flags = %X\n", status->rx_flags);
+		//printk(KERN_INFO "status->rx_flags = %X\n", status->rx_flags); /*JM*/
 		break;
 	case NL80211_IFTYPE_WAVE:
 		
-		printk (KERN_INFO "check BSSID: %pM", bssid);
-		printk (KERN_INFO "sdata->vif.addr: %pM, addr1: %pM, addr2: %pM, addr3: %pM, addr4: %pM\n", 
-				sdata->vif.addr, hdr->addr1, hdr->addr2, hdr->addr3, hdr->addr4);
-		if (!multicast && compare_ether_addr(sdata->vif.addr, hdr->addr1) != 0) {
-			if (!(sdata->dev->flags & IFF_PROMISC))
-				return 0;
-			printk(KERN_INFO "status->rx_flags &= ~IEEE80211_RX_RA_MATCH\n");
+		//printk (KERN_INFO "check BSSID: %pM", bssid); /*JM*/
+		//printk (KERN_INFO "sdata->vif.addr: %pM, addr1: %pM, addr2: %pM, addr3: %pM, addr4: %pM\n", /*JM*/
+		//		sdata->vif.addr, hdr->addr1, hdr->addr2, hdr->addr3, hdr->addr4); /*JM*/
+		if (!multicast && compare_ether_addr(sdata->vif.addr, hdr->addr1) != 0) { 	/*JM if packet is not multicast and*/
+			if (!(sdata->dev->flags & IFF_PROMISC))									/*doesnt match our mac address then*/
+				return 0;															/*then return 0*/
+			//printk(KERN_INFO "status->rx_flags &= ~IEEE80211_RX_RA_MATCH\n"); /*JM*/
 			status->rx_flags &= ~IEEE80211_RX_RA_MATCH;
 		}
-		printk(KERN_INFO "mactime: %llu, band = %d, freq = %d, antenna = %d, rate_idx = %d, flag = %X\n",
-						status->mactime, status->band, status->freq, status->antenna, status->rate_idx, status->flag);
-		printk(KERN_INFO "status->rx_flags = %X\n", status->rx_flags);
-		return 0;
+		//printk(KERN_INFO "mactime: %llu, band = %d, freq = %d, antenna = %d, rate_idx = %d, flag = %X\n", /*JM*/
+		//				status->mactime, status->band, status->freq, status->antenna, status->rate_idx, status->flag); /*JM*/
+		//printk(KERN_INFO "status->rx_flags = %X\n", status->rx_flags); /*JM*/
 	case NL80211_IFTYPE_MESH_POINT:
 		if (!multicast &&
 		    compare_ether_addr(sdata->vif.addr,
@@ -2928,7 +2971,7 @@ static bool ieee80211_prepare_and_rx_handle(struct ieee80211_rx_data *rx,
 	struct ieee80211_hdr *hdr = (void *)skb->data;
 	int prepares;
 
-	printk(KERN_INFO "ieee80211_prepare_and_rx_handle()\n");
+	//printk(KERN_INFO "ieee80211_prepare_and_rx_handle()\n"); /*JM*/
 	rx->skb = skb;
 	status->rx_flags |= IEEE80211_RX_RA_MATCH;
 	prepares = prepare_for_handlers(rx, hdr);
@@ -2970,7 +3013,7 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
 	struct sta_info *sta, *tmp, *prev_sta;
 	int err = 0;
 
-	printk(KERN_INFO "__ieee80211_rx_handle_packet()\n");
+	//printk(KERN_INFO "__ieee80211_rx_handle_packet()\n");	/*JM*/
 	fc = ((struct ieee80211_hdr *)skb->data)->frame_control;
 	memset(&rx, 0, sizeof(rx));
 	rx.skb = skb;
@@ -3081,9 +3124,9 @@ void ieee80211_rx(struct ieee80211_hw *hw, struct sk_buff *skb)
 
 	WARN_ON_ONCE(softirq_count() == 0);
 
-	printk(KERN_INFO "ieee80211_rx()\n");
+	//printk(KERN_INFO "ieee80211_rx()\n"); /*JM*/
 
-	printk(KERN_INFO "BAND: %d\n",  status->band);
+	//printk(KERN_INFO "BAND: %d\n",  status->band);
 	if (WARN_ON(status->band < 0 ||
 		    status->band >= IEEE80211_NUM_BANDS)) 
 		goto drop;

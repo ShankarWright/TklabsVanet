@@ -527,7 +527,7 @@ ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 {
 	u32 data = 0;
 
-	ATH5K_INFO(ah, "ath5k_hw_get_isr()\n");
+	//ATH5K_INFO(ah, "ath5k_hw_get_isr()\n"); /*JM*/
 
 	/*
 	 * Read interrupt status from Primary Interrupt
