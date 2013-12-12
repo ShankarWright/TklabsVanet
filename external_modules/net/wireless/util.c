@@ -81,7 +81,7 @@ struct ieee80211_channel *__ieee80211_get_channel(struct wiphy *wiphy,
 	struct ieee80211_supported_band *sband;
 	int i;
 
-	printk(KERN_INFO "ieee80211_get_channel()\n"); /*JM*/
+	printk(KERN_INFO "__ieee80211_get_channel()\n"); /*JM*/
 
 	for (band = 0; band < IEEE80211_NUM_BANDS; band++) {
 		sband = wiphy->bands[band];
@@ -90,11 +90,13 @@ struct ieee80211_channel *__ieee80211_get_channel(struct wiphy *wiphy,
 			continue;
 
 		for (i = 0; i < sband->n_channels; i++) {
-			if (sband->channels[i].center_freq == freq)
+			printk(KERN_INFO "checking channel %d frecuency %d\n", i, sband->channels[i].center_freq); /*JM*/
+			if (sband->channels[i].center_freq == freq) {
 				return &sband->channels[i];
+			}
+				
 		}
 	}
-
 	return NULL;
 }
 EXPORT_SYMBOL(__ieee80211_get_channel);

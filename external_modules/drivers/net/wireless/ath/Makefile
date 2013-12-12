@@ -1,3 +1,5 @@
+KBUILD_EXTRA_SYMBOLS := $(PWD)/../../../../net/mac80211/Module.symvers
+
 obj-m	+= ath5k/
 obj-m	+= ath.o
 

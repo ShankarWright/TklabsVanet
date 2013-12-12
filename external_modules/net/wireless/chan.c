@@ -17,32 +17,50 @@ rdev_freq_to_chan(struct cfg80211_registered_device *rdev,
 	struct ieee80211_channel *chan;
 	struct ieee80211_sta_ht_cap *ht_cap;
 
-	printk(KERN_INFO "rdev_freq_to_chan()\n");  /*JM*/
+	printk(KERN_INFO "rdev_freq_to_chan()\n"); /*JM */
 
 	chan = ieee80211_get_channel(&rdev->wiphy, freq);
 
 	/* Primary channel not allowed */
-	if (!chan || chan->flags & IEEE80211_CHAN_DISABLED)
+	if (!chan || chan->flags & IEEE80211_CHAN_DISABLED) {
+		printk(KERN_INFO "IEEE80211_CHAN_DISABLED\n");
 		return NULL;
+	}
+		
 
 	if (channel_type == NL80211_CHAN_HT40MINUS &&
-	    chan->flags & IEEE80211_CHAN_NO_HT40MINUS)
+	    chan->flags & IEEE80211_CHAN_NO_HT40MINUS) {
+		printk(KERN_INFO "channel_type == NL80211_CHAN_HT40MINUS\n");
 		return NULL;
+	}
+		
 	else if (channel_type == NL80211_CHAN_HT40PLUS &&
-		 chan->flags & IEEE80211_CHAN_NO_HT40PLUS)
+		 chan->flags & IEEE80211_CHAN_NO_HT40PLUS) {
+		printk(KERN_INFO "channel_type == NL80211_CHAN_HT40PLUS\n");
 		return NULL;
+	}
+		
 
 	ht_cap = &rdev->wiphy.bands[chan->band]->ht_cap;
 
 	if (channel_type != NL80211_CHAN_NO_HT) {
-		if (!ht_cap->ht_supported)
+		printk (KERN_INFO "channel_type != NL80211_CHAN_NO_HT\n");
+		if (!ht_cap->ht_supported) {
+			printk(KERN_INFO "!ht_cap->ht_supported\n");
 			return NULL;
+		}
+			
 
 		if (channel_type != NL80211_CHAN_HT20 &&
 		    (!(ht_cap->cap & IEEE80211_HT_CAP_SUP_WIDTH_20_40) ||
-		    ht_cap->cap & IEEE80211_HT_CAP_40MHZ_INTOLERANT))
+		    ht_cap->cap & IEEE80211_HT_CAP_40MHZ_INTOLERANT)) {
+			printk(KERN_INFO "channel_type != NL80211_CHAN_HT20\n");
 			return NULL;
+		}
+			
 	}
+
+	printk(KERN_INFO "rdev_freq_to_chan() done, returning chan %p\n", chan); /*JM */
 
 	return chan;
 }
@@ -127,8 +145,8 @@ int cfg80211_set_freq(struct cfg80211_registered_device *rdev,
 		default:
 			break;
 		}
-	
 
+	}
 	result = rdev->ops->set_channel(&rdev->wiphy,
 					wdev ? wdev->netdev : NULL,
 					chan, channel_type);

@@ -30,11 +30,11 @@ ccflags-y += -DCONFIG_ATH5K_TRACER
 ccflags-y += -DCONFIG_ATH5K_PCI
 
 all: 
-    make -C ../../../../../../build/linux-3.4.39 M=../../external_modules/drivers/net/wireless/ath/ath5k modules
+	make -C ../../../../../../build/linux-3.4.39 M=../../external_modules/drivers/net/wireless/ath/ath5k modules
 
 modules_install: 
-    make -C ../../../../../../build/linux-3.4.39 M=../../external_modules/drivers/net/wireless/ath/ath5k modules_install
+	make -C ../../../../../../build/linux-3.4.39 M=../../external_modules/drivers/net/wireless/ath/ath5k modules_install
 
 clean: 
-    make -C ../../../../../../build/linux-3.4.39 M=../../external_modules/drivers/net/wireless/ath/ath5k clean
+	make -C ../../../../../../build/linux-3.4.39 M=../../external_modules/drivers/net/wireless/ath/ath5k clean
 
