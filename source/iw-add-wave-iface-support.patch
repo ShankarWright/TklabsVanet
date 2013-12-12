@@ -1,0 +1,49 @@
+diff -Naur iw-3.8/interface.c iw-3.8-wave/interface.c
+--- iw-3.8/interface.c	2012-12-21 04:24:20.000000000 -0500
++++ iw-3.8-wave/interface.c	2013-12-12 12:00:12.168487338 -0500
+@@ -133,13 +133,16 @@
+ 	} else if (strcmp(tpstr, "__p2pcl") == 0) {
+ 		*type = NL80211_IFTYPE_P2P_CLIENT;
+ 		return 0;
+-	} else if (strcmp(tpstr, "__p2pdev") == 0) {
++	/*} else if (strcmp(tpstr, "__p2pdev") == 0) {	not present in nl80211.h header, remove for now
+ 		*type = NL80211_IFTYPE_P2P_DEVICE;
+-		return 0;
++		return 0;*/
+ 	} else if (strcmp(tpstr, "__p2pgo") == 0) {
+ 		*type = NL80211_IFTYPE_P2P_GO;
+ 		return 0;
+-	}
++	} else if (strcmp(tpstr, "wbss") == 0) {
++		*type = NL80211_IFTYPE_WAVE;
++		return 0;
++	} 
+ 
+ 	fprintf(stderr, "invalid interface type %s\n", tpstr);
+ 	return 2;
+diff -Naur iw-3.8/nl80211.h iw-3.8-wave/nl80211.h
+--- iw-3.8/nl80211.h	2012-12-21 04:24:20.000000000 -0500
++++ iw-3.8-wave/nl80211.h	2013-12-12 12:00:21.733267451 -0500
+@@ -1672,7 +1672,8 @@
+ 	NL80211_IFTYPE_MESH_POINT,
+ 	NL80211_IFTYPE_P2P_CLIENT,
+ 	NL80211_IFTYPE_P2P_GO,
+-	NL80211_IFTYPE_P2P_DEVICE,
++	//NL80211_IFTYPE_P2P_DEVICE, not present in linux nl80211.h header
++	NL80211_IFTYPE_WAVE,
+ 
+ 	/* keep last */
+ 	NUM_NL80211_IFTYPES,
+diff -Naur iw-3.8/util.c iw-3.8-wave/util.c
+--- iw-3.8/util.c	2012-12-21 04:24:20.000000000 -0500
++++ iw-3.8-wave/util.c	2013-12-12 12:00:27.648223531 -0500
+@@ -132,7 +132,8 @@
+ 	"mesh point",
+ 	"P2P-client",
+ 	"P2P-GO",
+-	"P2P-device",
++	/*"P2P-device",*/ /*comment out not in linux kernel header*/
++	"WBSS (WAVE)",
+ };
+ 
+ static char modebuf[100];

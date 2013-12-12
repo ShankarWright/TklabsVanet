@@ -43,6 +43,7 @@
     <Run>tar xzf source/buildroot-2013.02.tar.gz -C build</Run>
     <Copy src="config/buildroot_config_3.4.39" dest="build/buildroot-2013.02/.config" />
     <Copy src="config/busybox-1.21.x.config" dest="build/buildroot-2013.02/package/busybox/busybox-1.21.x.config.tklabs" />
+    <Copy src="source/iw-add-wave-iface-support.patch" dest="build/buildroot-2013.02/package/iw/iw-add-wave-iface-support.patch" />
     <Run>chmod +w build/buildroot-2013.02/package/busybox/busybox-1.21.x.config.tklabs</Run>
 </object>
 
