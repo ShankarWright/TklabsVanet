@@ -70,14 +70,11 @@
  *
  * @IEEE80211_BAND_2GHZ: 2.4GHz ISM band
  * @IEEE80211_BAND_5GHZ: around 5GHz band (4.9-5.7)
- * @IEEE80211_BAND_5GHZ: around 6GHz band (5.850-5.925)
  * @IEEE80211_NUM_BANDS: number of defined bands
  */
 enum ieee80211_band {
 	IEEE80211_BAND_2GHZ = NL80211_BAND_2GHZ,
 	IEEE80211_BAND_5GHZ = NL80211_BAND_5GHZ,
-	IEEE80211_BAND_6GHZ = NL80211_BAND_6GHZ,
-	
 
 	/* keep last */
 	IEEE80211_NUM_BANDS
@@ -119,7 +116,7 @@ enum ieee80211_channel_flags {
  * @center_freq: center frequency in MHz
  * @hw_value: hardware-specific value for the channel
  * @flags: channel flags from &enum ieee80211_channel_flags.
- * @target_bw: bandwidth of channel in KHz
+ * @target_bw: bandwidth of channel in MHz
  * @orig_flags: channel flags at registration time, used by regulatory
  *	code to support devices with additional restrictions
  * @band: band this channel belongs to.
@@ -137,7 +134,7 @@ struct ieee80211_channel {
 	u16 center_freq;
 	u16 hw_value;
 	u32 flags;
-	u32 target_bw;
+	int target_bw;
 	int max_antenna_gain;
 	int max_power;
 	int max_reg_power;

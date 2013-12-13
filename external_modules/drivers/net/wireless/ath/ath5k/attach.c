@@ -99,7 +99,7 @@ static int ath5k_hw_post(struct ath5k_hw *ah)
  * -ENODEV if the device is not supported or prints an error msg if something
  * else went wrong.
  */
-int ath5k_hw_init(struct ath5k_hw *ah)
+int ath5k_hw_init(struct ath5k_hw *ah, enum ath5k_bw_mode bw_mode)   
 {
 	static const u8 zero_mac[ETH_ALEN] = { };
 	struct ath_common *common = ath5k_hw_common(ah);
@@ -111,7 +111,7 @@ int ath5k_hw_init(struct ath5k_hw *ah)
 	/*
 	 * HW information
 	 */
-	ah->ah_bwmode = AR5K_BWMODE_DEFAULT;
+	ah->ah_bwmode = bw_mode; 			/*JM default mode is 20MHz*/
 	ah->ah_txpower.txp_tpc = AR5K_TUNE_TPC_TXPOWER;
 	ah->ah_imr = 0;
 	ah->ah_retry_short = AR5K_INIT_RETRY_SHORT;

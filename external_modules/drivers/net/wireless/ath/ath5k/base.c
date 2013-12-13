@@ -76,6 +76,10 @@ static bool modparam_p_limit;
 module_param_named(p_limit, modparam_p_limit, bool, S_IRUGO);
 MODULE_PARM_DESC(p_limit, "limit the driver to work at 802.11p frecuencies 5.850GHz - 5.925GHz");
 
+static int modparam_bandwidth = 20;
+module_param_named(bandwidth, modparam_bandwidth, int, S_IRUGO);
+MODULE_PARM_DESC(bandwidth, "Specify the bandwidth in MHz (default is 20MHz)");
+
 static bool modparam_fastchanswitch;
 module_param_named(fastchanswitch, modparam_fastchanswitch, bool, S_IRUGO);
 MODULE_PARM_DESC(fastchanswitch, "Enable fast channel switching for AR2413/AR5413 radios.");
@@ -264,13 +268,31 @@ static bool ath5k_is_standard_channel(short chan, enum ieee80211_band band)
 		if (band == IEEE80211_BAND_2GHZ) {
 			return false;
 		}
-			
-		if (chan == 172 || chan == 176 || chan == 180) { 	/*JM return true only for*/
-			return true;				 					/*channels 172, 176, 180 */
-										 					/*20Mhz BW, this needs fixing*/
+		
+		switch (modparam_bandwidth) {
+			case 5:
+				if(chan >= 171 && chan <=184) {
+					printk(KERN_INFO "5MHz bandwidth, channel %d is valid\n");
+					return true;
+				}
+				break;
+			case 10:
+				if(chan >= 171 && chan <=183 && (chan % 2 != 0)) {
+					printk(KERN_INFO "10MHZ bandwidth, channel %d is valid\n", chan);
+					return true;
+				}
+				break;
+			case 40:
+				printk(KERN_INFO "40Mhz bandwidth not allowed\n");
+				return false;	/*40MHz BW not allowed*/
+
+			default:
+				if (chan == 172 || chan == 176 || chan == 180) { 	/*JM return true only for*/
+					return true;				 					/*channels 172, 176, 180 */
+				}							 						/*20Mhz BW*/
+
 		}
 		return false;
-
 	} 
 
 	if (band == IEEE80211_BAND_2GHZ && chan <= 14)
@@ -329,6 +351,7 @@ ath5k_setup_channels(struct ath5k_hw *ah, struct ieee80211_channel *channels,
 		channels[count].center_freq = freq;
 		channels[count].band = band;
 		channels[count].hw_value = mode;
+		channels[count].target_bw = modparam_bandwidth;
 
 		/* Check if channel is supported by the chipset */
 		if (!ath5k_channel_ok(ah, &channels[count]))
@@ -2460,6 +2483,29 @@ ath5k_tx_complete_poll_work(struct work_struct *work)
 		msecs_to_jiffies(ATH5K_TX_COMPLETE_POLL_INT));
 }
 
+static enum ath5k_bw_mode get_bandwidth_mode(int bw)
+{
+	switch(bw) {
+
+		case 5:
+		printk(KERN_INFO "AR5K_BWMODE_5MHZ");
+		return AR5K_BWMODE_5MHZ;
+
+		case 10:
+		printk(KERN_INFO "AR5K_BWMODE_10MHZ");
+		return AR5K_BWMODE_10MHZ;
+
+		case 40:
+		printk(KERN_INFO "AR5K_BWMODE_40MHZ");
+		return AR5K_BWMODE_40MHZ;
+
+		default:
+		printk(KERN_INFO "AR5K_BWMODE_DEFAULT");
+		break;
+		
+	}
+	return AR5K_BWMODE_DEFAULT;
+}
 
 /*************************\
 * Initialization routines *
@@ -2536,7 +2582,7 @@ ath5k_init_ah(struct ath5k_hw *ah, const struct ath_bus_ops *bus_ops)
 	spin_lock_init(&common->cc_lock);
 
 	/* Initialize device */
-	ret = ath5k_hw_init(ah);
+	ret = ath5k_hw_init(ah, get_bandwidth_mode(modparam_bandwidth));
 	if (ret)
 		goto err_irq;
 

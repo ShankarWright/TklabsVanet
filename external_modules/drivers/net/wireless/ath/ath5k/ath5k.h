@@ -1466,7 +1466,7 @@ struct ath_bus_ops {
 extern const struct ieee80211_ops ath5k_hw_ops;
 
 /* Initialization and detach functions */
-int ath5k_hw_init(struct ath5k_hw *ah);
+int ath5k_hw_init(struct ath5k_hw *ah, enum ath5k_bw_mode);
 void ath5k_hw_deinit(struct ath5k_hw *ah);
 
 int ath5k_sysfs_register(struct ath5k_hw *ah);
