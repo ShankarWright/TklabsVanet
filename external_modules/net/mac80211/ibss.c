@@ -680,6 +680,7 @@ static void ieee80211_sta_create_ibss(struct ieee80211_sub_if_data *sdata)
 	u16 capability;
 	int i;
 
+	printk(KERN_INFO "ieee80211_sta_create_ibss()\n"); /*JM*/
 	lockdep_assert_held(&ifibss->mtx);
 
 	if (ifibss->fixed_bssid) {

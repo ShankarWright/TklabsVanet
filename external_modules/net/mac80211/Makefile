@@ -45,7 +45,7 @@ mac80211-y += $(rc80211_minstrel_ht-y)
 ccflags-y += -D__CHECK_ENDIAN__
 ccflags-y += -DCONFIG_MAC80211_RC_MINSTREL
 ccflags-y += -DCONFIG_MAC80211_RC_MINSTREL_HT
-
+ccflags-y += -DCONFIG_MAC80211_IBSS_DEBUG
 all:
 	make -C ../../../build/linux-3.4.39 M=../../external_modules/net/mac80211 modules 
 

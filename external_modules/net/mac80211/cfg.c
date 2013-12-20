@@ -496,6 +496,7 @@ static int ieee80211_get_station(struct wiphy *wiphy, struct net_device *dev,
 	struct sta_info *sta;
 	int ret = -ENOENT;
 
+	printk(KERN_INFO "ieee80211_get_station()\n"); /*JM*/
 	rcu_read_lock();
 
 	sta = sta_info_get_bss(sdata, mac);
@@ -1720,6 +1721,8 @@ static int ieee80211_set_tx_power(struct wiphy *wiphy,
 	struct ieee80211_channel *chan = local->hw.conf.channel;
 	u32 changes = 0;
 
+	printk(KERN_INFO "ieee80211_set_tx_power()\n"); /*JM*/
+
 	switch (type) {
 	case NL80211_TX_POWER_AUTOMATIC:
 		local->user_power_level = -1;
@@ -1747,6 +1750,8 @@ static int ieee80211_set_tx_power(struct wiphy *wiphy,
 static int ieee80211_get_tx_power(struct wiphy *wiphy, int *dbm)
 {
 	struct ieee80211_local *local = wiphy_priv(wiphy);
+
+	printk(KERN_INFO "ieee80211_get_tx_power()\n"); /*JM*/
 
 	*dbm = local->hw.conf.power_level;
 
@@ -1847,6 +1852,8 @@ static int ieee80211_set_power_mgmt(struct wiphy *wiphy, struct net_device *dev,
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 	struct ieee80211_local *local = wdev_priv(dev->ieee80211_ptr);
 
+	printk(KERN_INFO "ieee80211_set_power_mgmt()\n"); /*JM*/
+
 	if (sdata->vif.type != NL80211_IFTYPE_STATION)
 		return -EOPNOTSUPP;
 
@@ -1904,6 +1911,8 @@ static int ieee80211_set_bitrate_mask(struct wiphy *wiphy,
 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
 	struct ieee80211_local *local = wdev_priv(dev->ieee80211_ptr);
 	int i, ret;
+
+	printk(KERN_INFO "ieee80211_set_bitrate_mask()\n"); /*JM*/
 
 	if (local->hw.flags & IEEE80211_HW_HAS_RATE_CONTROL) {
 		ret = drv_set_bitrate_mask(local, sdata, mask);
@@ -2263,6 +2272,8 @@ static int ieee80211_set_antenna(struct wiphy *wiphy, u32 tx_ant, u32 rx_ant)
 {
 	struct ieee80211_local *local = wiphy_priv(wiphy);
 
+	printk(KERN_INFO "ieee80211_set_antenna()\n"); /*JM*/
+
 	if (local->started)
 		return -EOPNOTSUPP;
 
@@ -2273,12 +2284,16 @@ static int ieee80211_get_antenna(struct wiphy *wiphy, u32 *tx_ant, u32 *rx_ant)
 {
 	struct ieee80211_local *local = wiphy_priv(wiphy);
 
+	printk(KERN_INFO "ieee80211_get_antenna()\n"); /*JM*/
+
 	return drv_get_antenna(local, tx_ant, rx_ant);
 }
 
 static int ieee80211_set_ringparam(struct wiphy *wiphy, u32 tx, u32 rx)
 {
 	struct ieee80211_local *local = wiphy_priv(wiphy);
+
+	printk(KERN_INFO "ieee80211_set_ringparam()\n"); /*JM*/
 
 	return drv_set_ringparam(local, tx, rx);
 }
@@ -2287,6 +2302,8 @@ static void ieee80211_get_ringparam(struct wiphy *wiphy,
 				    u32 *tx, u32 *tx_max, u32 *rx, u32 *rx_max)
 {
 	struct ieee80211_local *local = wiphy_priv(wiphy);
+
+	printk(KERN_INFO "ieee80211_get_ringparam()\n"); /*JM*/
 
 	drv_get_ringparam(local, tx, tx_max, rx, rx_max);
 }
@@ -2697,6 +2714,8 @@ static struct ieee80211_channel *
 ieee80211_wiphy_get_channel(struct wiphy *wiphy)
 {
 	struct ieee80211_local *local = wiphy_priv(wiphy);
+
+	printk(KERN_INFO "ieee80211_wiphy_get_channel()\n");  /*JM*/
 
 	return local->oper_channel;
 }

@@ -785,6 +785,8 @@ static int cfg80211_netdev_notifier_call(struct notifier_block * nb,
 	struct cfg80211_registered_device *rdev;
 	int ret;
 
+	printk(KERN_INFO "cfg80211_netdev_notifier_call()\n"); /*JM*/
+
 	if (!wdev)
 		return NOTIFY_DONE;
 

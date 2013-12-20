@@ -397,6 +397,8 @@ ath5k_hw_set_bssid(struct ath5k_hw *ah)
 	struct ath_common *common = ath5k_hw_common(ah);
 	u16 tim_offset = 0;
 
+	ATH5K_INFO(ah, "ath5k_hw_set_bssid()\n");  /*JM*/
+
 	/*
 	 * Set BSSID mask on 5212
 	 */

@@ -121,9 +121,11 @@ int cfg80211_set_freq(struct cfg80211_registered_device *rdev,
 		return -EOPNOTSUPP;
 
 	chan = rdev_freq_to_chan(rdev, freq, channel_type);
-	printk(KERN_INFO "band: %d, channel freq: %d\n", chan->band, chan->center_freq);
+	
 	if (!chan)
 		return -EINVAL;
+
+	printk(KERN_INFO "band: %d, channel freq: %d\n", chan->band, chan->center_freq); /*JM*/
 
 	/* Both channels should be able to initiate communication */
 	if (wdev && (wdev->iftype == NL80211_IFTYPE_ADHOC ||

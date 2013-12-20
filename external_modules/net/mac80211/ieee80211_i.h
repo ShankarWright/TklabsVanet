@@ -561,9 +561,6 @@ struct ieee80211_if_wbss {
 
 	bool timer_running;
 
-	bool fixed_channel;
-	bool privacy;
-
 	bool control_port;
 
 	u8 bssid[ETH_ALEN] __aligned(2);
@@ -1250,6 +1247,7 @@ void ieee80211_ibss_rx_no_sta(struct ieee80211_sub_if_data *sdata,
 			      const u8 *bssid, const u8 *addr, u32 supp_rates);
 int ieee80211_ibss_join(struct ieee80211_sub_if_data *sdata,
 			struct cfg80211_ibss_params *params);
+int ieee80211_wbss_join(struct ieee80211_sub_if_data *sdata);
 int ieee80211_ibss_leave(struct ieee80211_sub_if_data *sdata);
 void ieee80211_ibss_quiesce(struct ieee80211_sub_if_data *sdata);
 void ieee80211_ibss_restart(struct ieee80211_sub_if_data *sdata);

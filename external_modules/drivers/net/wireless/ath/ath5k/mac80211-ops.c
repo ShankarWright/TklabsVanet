@@ -261,10 +261,10 @@ ath5k_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 	mutex_lock(&ah->lock);
 
-	//printk (KERN_INFO "ath5k_bss_info_changed()\n"); /*JM*/
+	printk (KERN_INFO "ath5k_bss_info_changed()\n"); /*JM*/
 
 	if (changes & BSS_CHANGED_BSSID) {
-		//printk (KERN_INFO "BSS_CHANGED_BSSID\n");
+		printk (KERN_INFO "BSS_CHANGED_BSSID\n");
 		/* Cache for later use during resets */
 		memcpy(common->curbssid, bss_conf->bssid, ETH_ALEN);
 		common->curaid = 0;
@@ -274,7 +274,7 @@ ath5k_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	}
 
 	if (changes & BSS_CHANGED_BEACON_INT) {
-		//printk (KERN_INFO "BSS_CHANGED_BEACON_INT\n"); /*JM*/
+		printk (KERN_INFO "BSS_CHANGED_BEACON_INT\n"); /*JM*/
 		ah->bintval = bss_conf->beacon_int;
 		change_count++;
 	}
@@ -282,7 +282,7 @@ ath5k_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 	if (changes & BSS_CHANGED_ERP_SLOT) {
 		int slot_time;
-		//printk (KERN_INFO "BSS_CHANGED_ERP_SLOT\n"); /*JM*/
+		printk (KERN_INFO "BSS_CHANGED_ERP_SLOT\n"); /*JM*/
 
 		ah->ah_short_slot = bss_conf->use_short_slot;
 		slot_time = ath5k_hw_get_default_slottime(ah) +
@@ -292,7 +292,7 @@ ath5k_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	}
 
 	if (changes & BSS_CHANGED_ASSOC) {
-		//printk (KERN_INFO "BSS_CHANGED_ASSOC\n"); /*JM*/
+		printk (KERN_INFO "BSS_CHANGED_ASSOC\n"); /*JM*/
 		avf->assoc = bss_conf->assoc;
 		if (bss_conf->assoc)
 			ah->assoc = bss_conf->assoc;
@@ -315,7 +315,7 @@ ath5k_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	}
 
 	if (changes & BSS_CHANGED_BEACON) {
-		//printk (KERN_INFO "BSS_CHANGED_BEACON\n"); /*JM */
+		printk (KERN_INFO "BSS_CHANGED_BEACON\n"); /*JM */
 		spin_lock_irqsave(&ah->block, flags);
 		ath5k_beacon_update(hw, vif);
 		spin_unlock_irqrestore(&ah->block, flags);
@@ -331,13 +331,13 @@ ath5k_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 	if (changes & (BSS_CHANGED_BEACON | BSS_CHANGED_BEACON_ENABLED |
 		       BSS_CHANGED_BEACON_INT)) {
-		//printk (KERN_INFO "changing beacon config\n"); /*JM */
+		printk (KERN_INFO "changing beacon config\n"); /*JM */
 		ath5k_beacon_config(ah);
 		change_count++;
 	}
 		
 	
-	//printk (KERN_INFO "%d changes\n", change_count);
+	printk (KERN_INFO "%d changes\n", change_count);
 	
 	mutex_unlock(&ah->lock);
 }

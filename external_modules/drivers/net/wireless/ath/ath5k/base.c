@@ -272,7 +272,7 @@ static bool ath5k_is_standard_channel(short chan, enum ieee80211_band band)
 		switch (modparam_bandwidth) {
 			case 5:
 				if(chan >= 171 && chan <=184) {
-					printk(KERN_INFO "5MHz bandwidth, channel %d is valid\n");
+					printk(KERN_INFO "5MHz bandwidth, channel %d is valid\n", chan);
 					return true;
 				}
 				break;

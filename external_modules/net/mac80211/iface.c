@@ -218,6 +218,7 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 		break;
 	case NL80211_IFTYPE_WAVE:
 		printk(KERN_INFO "NL80211_IFTYPE_WAVE\n");
+		changed |= BSS_CHANGED_BSSID;		/*JM doing this here for now*/
 		break;
 	case NL80211_IFTYPE_UNSPECIFIED:
 	case NUM_NL80211_IFTYPES:
@@ -305,8 +306,10 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 		if (sdata->vif.type == NL80211_IFTYPE_STATION ||
 		    sdata->vif.type == NL80211_IFTYPE_ADHOC) 
 			netif_carrier_off(dev);
-		else
+		else {
 			netif_carrier_on(dev);
+		}
+			
 
 		/*
 		 * set default queue parameters so drivers don't
@@ -364,7 +367,7 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 	ieee80211_recalc_ps(local, -1);
 
 	netif_tx_start_all_queues(dev);
-
+	
 	return 0;
  err_del_interface:
 	drv_remove_interface(local, sdata);
@@ -740,6 +743,8 @@ static void ieee80211_iface_work(struct work_struct *work)
 	struct sta_info *sta;
 	struct ieee80211_ra_tid *ra_tid;
 
+	printk(KERN_INFO "ieee80211_iface_work()\n");
+
 	if (!ieee80211_sdata_running(sdata)) {
 		return;
 	}
@@ -758,9 +763,11 @@ static void ieee80211_iface_work(struct work_struct *work)
 		 "interface work scheduled while going to suspend\n"))
 		return;
 
-	/* first process frames */
+	/* first process rx frames */
 	while ((skb = skb_dequeue(&sdata->skb_queue))) {
 		struct ieee80211_mgmt *mgmt = (void *)skb->data;
+
+		printk(KERN_INFO "skb_dequeue skb = %p\n", skb); /*JM*/
 
 		if (skb->pkt_type == IEEE80211_SDATA_QUEUE_AGG_START) {		/*JM defines its own packet types*/
 			printk(KERN_INFO "IEEE80211_SDATA_QUEUE_AGG_START\n"); 	/*in ieee80211_i.h instead of using*/  
@@ -841,6 +848,9 @@ static void ieee80211_iface_work(struct work_struct *work)
 		case NL80211_IFTYPE_ADHOC:
 			printk(KERN_INFO "sdata->vif.type == NL80211_IFTYPE_ADHOC\n");
 			ieee80211_ibss_rx_queued_mgmt(sdata, skb);
+			break;
+		case NL80211_IFTYPE_WAVE:
+			/*TODO implement wbss_rx_mgmt*/
 			break;
 		case NL80211_IFTYPE_MESH_POINT:
 			if (!ieee80211_vif_is_mesh(&sdata->vif))
