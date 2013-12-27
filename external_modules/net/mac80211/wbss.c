@@ -79,12 +79,9 @@ static void ieee80211_wbss_timer(unsigned long data)
 	struct ieee80211_if_wbss *ifwbss = &sdata->u.wbss;
 	struct ieee80211_local *local = sdata->local;
 
-	//struct ieee80211_channel *chan = ifwbss->channel;
 	struct ieee80211_channel *chan = sdata->local->oper_channel;
 
 	struct wiphy *wiphy = sdata->wdev.wiphy;
-
-	//static int channel = 0; /*JM test code*/
 
 	printk(KERN_INFO "ieee80211_wbss_timer(), jiffies = %lu\n", jiffies);
 
@@ -98,22 +95,6 @@ static void ieee80211_wbss_timer(unsigned long data)
 
 	} 
 
-	//if (channel < wiphy->bands[IEEE80211_BAND_5GHZ]->n_channels) {
-	//	mod_timer(&ifwbss->timer,
-	//	  round_jiffies(jiffies + DEFAULT_SCH_TIME));
-
-	//}
-
-	
-
-
-
-	//if (local->quiescing) {
-	//	ifwbss->timer_running = true;
-	//	return;
-	//}
-
-	//ieee80211_queue_work(&local->hw, &sdata->work);
 }
 
 static void __ieee80211_sta_join_wbss(void)
@@ -145,14 +126,7 @@ int ieee80211_wbss_join(struct ieee80211_sub_if_data *sdata) {
 
 	mod_timer(&ifwbss->timer,
 		  round_jiffies(jiffies + DEFAULT_SCH_TIME));
-/*
-	ssleep(10); //sleep for 10 seconds
 
-	for (i = 0; i < sdata->wdev.wiphy->bands[IEEE80211_BAND_5GHZ]->n_channels; i++) {
-		ieee80211_wbss_set_channel(sdata, i);
-		msleep(500);
-	}
-*/	
 
 	return 0;
 }
@@ -234,24 +208,34 @@ void ieee80211_wbss_work(struct ieee80211_sub_if_data *sdata)
 {
 	struct ieee80211_if_wbss *ifwbss = &sdata->u.wbss;
 	struct ieee80211_local *local = sdata->local;
+	struct ieee80211_supported_band *sband = sdata->wdev.wiphy->bands[IEEE80211_BAND_5GHZ];
 
 	//struct ieee80211_channel *chan = ifwbss->channel;
 	struct ieee80211_channel *chan = sdata->local->oper_channel;
 
 	struct wiphy *wiphy = sdata->wdev.wiphy;
 
+	int i;
 	static int channel = 0;
 
-	printk(KERN_INFO "wbss is working\n");
-	if(!in_interrupt()) {
-		printk(KERN_INFO "Process Context\n");
-	}
+	if (channel == 0) {
+		printk(KERN_INFO "supported bit rates: %d\n", sband->n_bitrates);
+		for (i = 0; i < sband->n_bitrates; i++) {
+			printk(KERN_INFO "bitrate: %d flags: 0%x, hw value: %d, hw_value_short: %d\n", 
+								sband->bitrates[i].bitrate,
+								sband->bitrates[i].flags,
+								sband->bitrates[i].hw_value,
+								sband->bitrates[i].hw_value_short);
+		}
 
-	if (channel < sdata->wdev.wiphy->bands[IEEE80211_BAND_5GHZ]->n_channels) {
+	}
+	if (channel < sband->n_channels) {
 		ieee80211_wbss_set_channel(sdata, channel++);
 		mod_timer(&ifwbss->timer,
 		  round_jiffies(jiffies + DEFAULT_SCH_TIME));
 	}
+
+
 		
 }
 

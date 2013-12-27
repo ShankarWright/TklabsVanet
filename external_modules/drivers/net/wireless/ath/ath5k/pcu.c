@@ -396,9 +396,9 @@ ath5k_hw_set_bssid(struct ath5k_hw *ah)
 {
 	struct ath_common *common = ath5k_hw_common(ah);
 	u16 tim_offset = 0;
-
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 	ATH5K_INFO(ah, "ath5k_hw_set_bssid()\n");  /*JM*/
-
+#endif
 	/*
 	 * Set BSSID mask on 5212
 	 */
@@ -898,7 +898,9 @@ ath5k_hw_set_opmode(struct ath5k_hw *ah, enum nl80211_iftype op_mode)
 		break;
 
 	case NL80211_IFTYPE_WAVE:
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 		ATH5K_INFO(ah, "setting op mode to WAVE\n");
+#endif
 		break;		/*anything special here*/
 
 	case NL80211_IFTYPE_AP:

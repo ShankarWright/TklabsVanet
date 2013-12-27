@@ -58,7 +58,9 @@ ath5k_tx(struct ieee80211_hw *hw, struct sk_buff *skb)
 	struct ath5k_hw *ah = hw->priv;
 	u16 qnum = skb_get_queue_mapping(skb);
 
-	//printk(KERN_INFO "ath5k_tx()\n"); /*JM*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	printk(KERN_INFO "ath5k_tx()\n"); /*JM*/
+#endif
 
 	if (WARN_ON(qnum >= ah->ah_capabilities.cap_queues.q_tx_num)) {
 		ieee80211_free_txskb(hw, skb);
@@ -76,7 +78,9 @@ ath5k_add_interface(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
 	int ret;
 	struct ath5k_vif *avf = (void *)vif->drv_priv;
 
-	//printk (KERN_INFO "ath5k_add_interface()\n"); /*JM*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	printk (KERN_INFO "ath5k_add_interface()\n"); /*JM*/
+#endif 
 	mutex_lock(&ah->lock);
 
 	if ((vif->type == NL80211_IFTYPE_AP || /* JM do we have to check for WAVE??*/
@@ -257,42 +261,49 @@ ath5k_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	struct ath5k_hw *ah = hw->priv;
 	struct ath_common *common = ath5k_hw_common(ah);
 	unsigned long flags;
-	int change_count = 0; /*JM remove just for debugging*/
 
 	mutex_lock(&ah->lock);
 
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 	printk (KERN_INFO "ath5k_bss_info_changed()\n"); /*JM*/
+#endif
 
 	if (changes & BSS_CHANGED_BSSID) {
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 		printk (KERN_INFO "BSS_CHANGED_BSSID\n");
+#endif
 		/* Cache for later use during resets */
 		memcpy(common->curbssid, bss_conf->bssid, ETH_ALEN);
 		common->curaid = 0;
 		ath5k_hw_set_bssid(ah);
 		mmiowb();
-		change_count++;
+		
 	}
 
 	if (changes & BSS_CHANGED_BEACON_INT) {
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 		printk (KERN_INFO "BSS_CHANGED_BEACON_INT\n"); /*JM*/
+#endif
 		ah->bintval = bss_conf->beacon_int;
-		change_count++;
 	}
 		
 
 	if (changes & BSS_CHANGED_ERP_SLOT) {
 		int slot_time;
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 		printk (KERN_INFO "BSS_CHANGED_ERP_SLOT\n"); /*JM*/
-
+#endif
 		ah->ah_short_slot = bss_conf->use_short_slot;
 		slot_time = ath5k_hw_get_default_slottime(ah) +
 			    3 * ah->ah_coverage_class;
 		ath5k_hw_set_ifs_intervals(ah, slot_time);
-		change_count++;
+	
 	}
 
 	if (changes & BSS_CHANGED_ASSOC) {
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 		printk (KERN_INFO "BSS_CHANGED_ASSOC\n"); /*JM*/
+#endif
 		avf->assoc = bss_conf->assoc;
 		if (bss_conf->assoc)
 			ah->assoc = bss_conf->assoc;
@@ -311,34 +322,33 @@ ath5k_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 			ath5k_hw_set_bssid(ah);
 			/* Once ANI is available you would start it here */
 		}
-		change_count++;
 	}
 
 	if (changes & BSS_CHANGED_BEACON) {
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 		printk (KERN_INFO "BSS_CHANGED_BEACON\n"); /*JM */
+#endif
 		spin_lock_irqsave(&ah->block, flags);
 		ath5k_beacon_update(hw, vif);
 		spin_unlock_irqrestore(&ah->block, flags);
-		change_count++;
 	}
 
 	if (changes & BSS_CHANGED_BEACON_ENABLED) {
-		//printk (KERN_INFO "BSS_CHANGED_BEACON_ENABLED\n"); /*JM */
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+		printk (KERN_INFO "BSS_CHANGED_BEACON_ENABLED\n"); /*JM */
+#endif
 		ah->enable_beacon = bss_conf->enable_beacon;
-		change_count++;
 	}
 		
 
 	if (changes & (BSS_CHANGED_BEACON | BSS_CHANGED_BEACON_ENABLED |
 		       BSS_CHANGED_BEACON_INT)) {
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 		printk (KERN_INFO "changing beacon config\n"); /*JM */
+#endif
 		ath5k_beacon_config(ah);
-		change_count++;
 	}
-		
-	
-	printk (KERN_INFO "%d changes\n", change_count);
-	
+
 	mutex_unlock(&ah->lock);
 }
 
@@ -404,7 +414,10 @@ ath5k_configure_filter(struct ieee80211_hw *hw, unsigned int changed_flags,
 	u32 mfilt[2], rfilt;
 	struct ath5k_vif_iter_data iter_data; /* to count STA interfaces */
 
-	//ATH5K_INFO(ah, "ath5k_configure_filter()\n"); /*JM*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO(ah, "ath5k_configure_filter()\n"); /*JM*/
+#endif
+
 	mutex_lock(&ah->lock);
 
 	mfilt[0] = multicast;
@@ -494,7 +507,9 @@ ath5k_configure_filter(struct ieee80211_hw *hw, unsigned int changed_flags,
 	}
 
 	/* Set filters */
-	//ATH5K_INFO(ah, "setting filters %X\n", rfilt); /*JM*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO(ah, "setting filters %X\n", rfilt); /*JM*/
+#endif
 	ath5k_hw_set_rx_filter(ah, rfilt);
 
 	/* Set multicast bits */

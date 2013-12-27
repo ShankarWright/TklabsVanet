@@ -130,7 +130,9 @@ ath5k_hw_start_tx_dma(struct ath5k_hw *ah, unsigned int queue)
 	u32 tx_queue;
 
 	AR5K_ASSERT_ENTRY(queue, ah->ah_capabilities.cap_queues.q_tx_num);
-	//ATH5K_INFO(ah, "ath5k_hw_start_tx_dma()\n"); /*JM*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO(ah, "ath5k_hw_start_tx_dma()\n"); /*JM*/
+#endif
 
 	/* Return if queue is declared inactive */
 	if (ah->ah_txq[queue].tqi_type == AR5K_TX_QUEUE_INACTIVE)
@@ -526,8 +528,9 @@ int
 ath5k_hw_get_isr(struct ath5k_hw *ah, enum ath5k_int *interrupt_mask)
 {
 	u32 data = 0;
-
-	//ATH5K_INFO(ah, "ath5k_hw_get_isr()\n"); /*JM*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO(ah, "ath5k_hw_get_isr()\n"); /*JM*/
+#endif
 
 	/*
 	 * Read interrupt status from Primary Interrupt

@@ -272,18 +272,18 @@ static bool ath5k_is_standard_channel(short chan, enum ieee80211_band band)
 		switch (modparam_bandwidth) {
 			case 5:
 				if(chan >= 171 && chan <=184) {
-					printk(KERN_INFO "5MHz bandwidth, channel %d is valid\n", chan);
+					printk(KERN_DEBUG "5MHz bandwidth, channel %d is valid\n", chan);
 					return true;
 				}
 				break;
 			case 10:
 				if(chan >= 171 && chan <=183 && (chan % 2 != 0)) {
-					printk(KERN_INFO "10MHZ bandwidth, channel %d is valid\n", chan);
+					printk(KERN_DEBUG"10MHZ bandwidth, channel %d is valid\n", chan);
 					return true;
 				}
 				break;
 			case 40:
-				printk(KERN_INFO "40Mhz bandwidth not allowed\n");
+				printk(KERN_DEBUG "40Mhz bandwidth not allowed\n");
 				return false;	/*40MHz BW not allowed*/
 
 			default:
@@ -720,6 +720,9 @@ ath5k_txbuf_setup(struct ath5k_hw *ah, struct ath5k_buf *bf,
 	u16 cts_rate = 0;
 	u16 duration = 0;
 	u8 rc_flags;
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO(ah, "ath5k_txbuf_setup()\n"); /*JM*/
+#endif
 
 	flags = AR5K_TXDESC_INTREQ | AR5K_TXDESC_CLRDMASK;
 
@@ -728,6 +731,9 @@ ath5k_txbuf_setup(struct ath5k_hw *ah, struct ath5k_buf *bf,
 			DMA_TO_DEVICE);
 
 	rate = ieee80211_get_tx_rate(ah->hw, info);
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO(ah, "rate: %d, flags: 0x%x\n", rate->bitrate, rate->flags);/*JM*/
+#endif
 	if (!rate) {
 		ret = -EINVAL;
 		goto err_unmap;
@@ -1010,7 +1016,9 @@ ath5k_beaconq_config(struct ath5k_hw *ah)
 {
 	struct ath5k_txq_info qi;
 	int ret;
-	//ATH5K_INFO(ah, "ath5k_beaconq_config()\n"); /*JM*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO(ah, "ath5k_beaconq_config()\n"); /*JM*/
+#endif
 	ret = ath5k_hw_get_tx_queueprops(ah, ah->bhalq, &qi);
 	if (ret)
 		goto err;
@@ -1360,9 +1368,9 @@ ath5k_receive_frame(struct ath5k_hw *ah, struct sk_buff *skb,
 		    struct ath5k_rx_status *rs)
 {
 	struct ieee80211_rx_status *rxs;
-
-	//ATH5K_INFO (ah, "ath5k_receive_frame()\n"); /*JM*/
-
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO (ah, "ath5k_receive_frame()\n"); /*JM*/
+#endif
 	ath5k_remove_padding(skb);
 
 	rxs = IEEE80211_SKB_RXCB(skb);
@@ -1435,9 +1443,9 @@ ath5k_receive_frame_ok(struct ath5k_hw *ah, struct ath5k_rx_status *rs)
 {
 	ah->stats.rx_all_count++;
 	ah->stats.rx_bytes_count += rs->rs_datalen;
-
-	//printk(KERN_INFO "ath5k_receive_frame_ok()\n");
-
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	printk(KERN_INFO "ath5k_receive_frame_ok()\n");
+#endif
 	if (unlikely(rs->rs_status)) {
 		if (rs->rs_status & AR5K_RXERR_CRC)
 			ah->stats.rxerr_crc++;
@@ -1510,7 +1518,9 @@ ath5k_tasklet_rx(unsigned long data)
 	struct ath5k_desc *ds;
 	int ret;
 
-	//printk(KERN_INFO "ath5k_tasklet_rx()\n"); /*JM*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	printk(KERN_INFO "ath5k_tasklet_rx()\n"); /*JM*/
+#endif
 
 	spin_lock(&ah->rxbuflock);
 	if (list_empty(&ah->rxbuf)) {
@@ -1580,7 +1590,9 @@ ath5k_tx_queue(struct ieee80211_hw *hw, struct sk_buff *skb,
 	unsigned long flags;
 	int padsize;
 
-	//ATH5K_INFO (ah, "ath5k_tx_queue(hw = %p, skb = %p, txq = %p)\n", hw, skb, txq); /*JM remove*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO (ah, "ath5k_tx_queue(hw = %p, skb = %p, txq = %p)\n", hw, skb, txq); /*JM*/
+#endif
 	trace_ath5k_tx(ah, skb, txq);
 
 	/*
@@ -1697,9 +1709,9 @@ ath5k_tx_processq(struct ath5k_hw *ah, struct ath5k_txq *txq)
 	struct ath5k_desc *ds;
 	struct sk_buff *skb;
 	int ret;
-
-	//ATH5K_INFO (ah, "ath5k_tx_processq()\n");
-
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO (ah, "ath5k_tx_processq()\n");
+#endif
 	spin_lock(&txq->lock);
 	list_for_each_entry_safe(bf, bf0, &txq->q, list) {
 
@@ -1751,17 +1763,17 @@ ath5k_tasklet_tx(unsigned long data)
 {
 	int i;
 	struct ath5k_hw *ah = (void *)data;
-
-	//ATH5K_INFO (ah, "ath5k_tasklet_tx()\n");
-
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO (ah, "ath5k_tasklet_tx()\n");
+#endif
 	for (i = 0; i < AR5K_NUM_TX_QUEUES; i++) {
 
 		if (ah->txqs[i].setup && (ah->ah_txq_isr_txok_all & BIT(i))) {
-			//ATH5K_INFO(ah, "ah->txqs[%d].setup && (ah->ah_txq_isr_txok_all & BIT(%d))\n", i, i);
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+			ATH5K_INFO(ah, "ah->txqs[%d].setup && (ah->ah_txq_isr_txok_all & BIT(%d))\n", i, i);
+#endif
 			ath5k_tx_processq(ah, &ah->txqs[i]);
-		} else {
-			//ATH5K_INFO(ah, "QCP!!\n");
-		}			
+		} 			
 	}
 		
 
@@ -2256,11 +2268,8 @@ ath5k_intr(int irq, void *dev_id)
 	/** Main loop **/
 	do {
 		ath5k_hw_get_isr(ah, &status);	/* NB: clears IRQ too */
-
-		//ATH5K_DBG(ah, ATH5K_DEBUG_INTR, "status 0x%x/0x%x\n",
-		//		status, ah->imask);
-		//ATH5K_INFO(ah, "status 0x%x/0x%x\n",    /*JM*/
-		//		status, ah->imask);
+		ATH5K_DBG(ah, ATH5K_DEBUG_INTR, "status 0x%x/0x%x\n",
+				status, ah->imask);
 
 		/*
 		 * Fatal hw error -> Log and reset
@@ -2322,7 +2331,9 @@ ath5k_intr(int irq, void *dev_id)
 
 			/* RX -> Schedule rx tasklet */
 			if (status & (AR5K_INT_RXOK | AR5K_INT_RXERR)) {
-				//ATH5K_INFO(ah, "rx irq\n"); /*JM*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+				ATH5K_INFO(ah, "rx irq\n"); /*JM*/
+#endif
 				ath5k_schedule_rx(ah);
 
 			}
@@ -2333,7 +2344,9 @@ ath5k_intr(int irq, void *dev_id)
 					| AR5K_INT_TXDESC
 					| AR5K_INT_TXERR
 					| AR5K_INT_TXEOL)) {
-				//ATH5K_INFO(ah, "tx irq\n"); /*JM*/
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+				ATH5K_INFO(ah, "tx irq\n"); /*JM*/
+#endif
 				ath5k_schedule_tx(ah);
 			}
 				
@@ -2488,19 +2501,19 @@ static enum ath5k_bw_mode get_bandwidth_mode(int bw)
 	switch(bw) {
 
 		case 5:
-		printk(KERN_INFO "AR5K_BWMODE_5MHZ");
+		printk(KERN_DEBUG "AR5K_BWMODE_5MHZ");
 		return AR5K_BWMODE_5MHZ;
 
 		case 10:
-		printk(KERN_INFO "AR5K_BWMODE_10MHZ");
+		printk(KERN_DEBUG "AR5K_BWMODE_10MHZ");
 		return AR5K_BWMODE_10MHZ;
 
 		case 40:
-		printk(KERN_INFO "AR5K_BWMODE_40MHZ");
+		printk(KERN_DEBUG "AR5K_BWMODE_40MHZ");
 		return AR5K_BWMODE_40MHZ;
 
 		default:
-		printk(KERN_INFO "AR5K_BWMODE_DEFAULT");
+		printk(KERN_DEBUG "AR5K_BWMODE_DEFAULT");
 		break;
 		
 	}

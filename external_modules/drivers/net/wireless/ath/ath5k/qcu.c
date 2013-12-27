@@ -565,9 +565,9 @@ int ath5k_hw_set_ifs_intervals(struct ath5k_hw *ah, unsigned int slot_time)
 	struct ieee80211_rate *rate;
 	u32 ack_tx_time, eifs, eifs_clock, sifs, sifs_clock;
 	u32 slot_time_clock = ath5k_hw_htoclock(ah, slot_time);
-
-	//ATH5K_INFO(ah, "ath5k_hw_set_ifs_intervals(), slot time = %u\n", slot_time); /*JM*/
-
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO(ah, "ath5k_hw_set_ifs_intervals(), slot time = %u\n", slot_time); /*JM*/
+#endif
 	if (slot_time < 6 || slot_time_clock > AR5K_SLOT_TIME_MAX)
 		return -EINVAL;
 
@@ -670,9 +670,9 @@ int
 ath5k_hw_init_queues(struct ath5k_hw *ah)
 {
 	int i, ret;
-
-	//ATH5K_INFO(ah, "ath5k_hw_init_queues()\n"); /*JM*/
-
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
+	ATH5K_INFO(ah, "ath5k_hw_init_queues()\n"); /*JM*/
+#endif
 
 	/* TODO: HW Compression support for data queues */
 	/* TODO: Burst prefetch for data queues */

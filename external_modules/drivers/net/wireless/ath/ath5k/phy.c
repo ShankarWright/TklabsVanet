@@ -135,12 +135,6 @@ ath5k_channel_ok(struct ath5k_hw *ah, struct ieee80211_channel *channel)
 {
 	u16 freq = channel->center_freq;
 
-	//printk(KERN_DEBUG "Todd2 - ath5k_channel_ok - Requested Freq %d, band %d, min %d, max %d", 
-        //         freq,
-        //         channel->band,
-        //         ah->ah_capabilities.cap_range.range_5ghz_min,
-        //         ah->ah_capabilities.cap_range.range_5ghz_max); 
-
 	/* Check if the channel is in our supported range */
 	if (channel->band == IEEE80211_BAND_2GHZ) {
 		if ((freq >= ah->ah_capabilities.cap_range.range_2ghz_min) &&
@@ -1441,9 +1435,9 @@ ath5k_hw_channel(struct ath5k_hw *ah,
 		struct ieee80211_channel *channel)
 {
 	int ret;
-
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 	ATH5K_INFO(ah, "Todd2 - ath5k_hw_channel - channel frequency (%u MHz)", channel->center_freq);
-
+#endif
 
 	/*
 	 * Check bounds supported by the PHY (we don't care about regulatory
@@ -1472,7 +1466,9 @@ ath5k_hw_channel(struct ath5k_hw *ah,
 		ret = ath5k_hw_rf2425_channel(ah, channel);
 		break;
 	default:
+#ifdef CONFIG_ATH5K_TKLABS_DEBUG
 		ATH5K_INFO(ah, "RADIO RF5112\n");
+#endif
 		ret = ath5k_hw_rf5112_channel(ah, channel);
 		break;
 	}
