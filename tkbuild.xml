@@ -71,6 +71,7 @@
 <object name="kernel-build" target="kernel world" directory="build/linux-3.4.39">
     <Copy src="../../external_modules/net/wireless/db.txt" dest="net/wireless/db.txt" />
     <Copy src="../../external_modules/net/wireless/genregdb.awk" dest="net/wireless/genregdb.awk" />
+    <Copy src="../../external_modules/include/linux/ieee80211.h" dest="include/linux/ieee80211.h" />
     <Copy src="../../external_modules/include/linux/nl80211.h" dest="include/linux/nl80211.h" />
     <Copy src="../../external_modules/include/net/cfg80211.h" dest="include/net/cfg80211.h" />
     <Run>./crossmake $${NCPU} all</Run>
@@ -81,6 +82,7 @@
 <object name="cfg" target="cfg extmod" directory="external_modules/net/wireless/">
     <echo>Building cfg80211 module</echo>
     <Copy src="../../include/linux/nl80211.h" dest="../../../build/linux-3.4.39/include/linux/nl80211.h" />
+    <Copy src="../../include/linux/ieee80211.h" dest="../../../build/linux-3.4.39/include/linux/ieee80211.h" />
     <Copy src="../../include/net/cfg80211.h" dest="../../../build/linux-3.4.39/include/net/cfg80211.h" />   
     <Run>./crossmake all</Run>
     <Run>./crossmake modules_install</Run>
