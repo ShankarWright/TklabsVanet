@@ -191,8 +191,9 @@ void ieee80211_bss_info_change_notify(struct ieee80211_sub_if_data *sdata,
 {
 	struct ieee80211_local *local = sdata->local;
 	static const u8 zero[ETH_ALEN] = { 0 };
-
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 	printk (KERN_INFO "ieee80211_bss_info_change_notify()\n"); /*JM*/
+#endif
 
 	if (!changed)
 		return;
@@ -202,8 +203,10 @@ void ieee80211_bss_info_change_notify(struct ieee80211_sub_if_data *sdata,
 	} else if (sdata->vif.type == NL80211_IFTYPE_ADHOC) {
 		sdata->vif.bss_conf.bssid = sdata->u.ibss.bssid;
 	} else if (sdata->vif.type == NL80211_IFTYPE_WAVE) {
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 		printk(KERN_INFO "NL80211_IFTYPE_WAVE\n");	/*JM*/
 		printk(KERN_INFO "setting bssid to %pM", sdata->u.wbss.bssid); /*JM*/
+#endif
 		sdata->vif.bss_conf.bssid = sdata->u.wbss.bssid;
 	} else if (sdata->vif.type == NL80211_IFTYPE_AP) {
 		sdata->vif.bss_conf.bssid = sdata->vif.addr;
@@ -250,7 +253,9 @@ void ieee80211_bss_info_change_notify(struct ieee80211_sub_if_data *sdata,
 					!!sdata->u.ibss.presp;
 				break;
 			case NL80211_IFTYPE_WAVE:
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 				printk(KERN_INFO, "should beacon be enabled for WBSS??\n"); /*JM*/
+#endif
 #ifdef CONFIG_MAC80211_MESH
 			case NL80211_IFTYPE_MESH_POINT:
 				sdata->vif.bss_conf.enable_beacon =

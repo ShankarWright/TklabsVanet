@@ -665,8 +665,6 @@ int __must_check __sta_info_destroy(struct sta_info *sta)
 	int ret, i, ac;
 	struct tid_ampdu_tx *tid_tx;
 
-	//printk(KERN_INFO "__sta_info_destroy()\n");
-
 	might_sleep();
 
 	if (!sta)
@@ -708,7 +706,9 @@ int __must_check __sta_info_destroy(struct sta_info *sta)
 		RCU_INIT_POINTER(sdata->u.vlan.sta, NULL);
 
 	while (sta->sta_state > IEEE80211_STA_NONE) {
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 		printk(KERN_INFO "sta_state = %d\n", sta->sta_state);
+#endif
 		ret = sta_info_move_state(sta, sta->sta_state - 1);
 		if (ret) {
 			WARN_ON_ONCE(1);

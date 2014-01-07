@@ -426,8 +426,9 @@ static inline void sta_info_pre_move_state(struct sta_info *sta,
 					   enum ieee80211_sta_state new_state)
 {
 	int ret;
-
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 	printk(KERN_INFO "sta_info_pre_move_state()\n"); /*JM*/
+#endif
 
 	WARN_ON_ONCE(test_sta_flag(sta, WLAN_STA_INSERTED));
 

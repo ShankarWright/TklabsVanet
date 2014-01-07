@@ -73,9 +73,9 @@ bool ieee80211_set_channel_type(struct ieee80211_local *local,
 	struct ieee80211_sub_if_data *tmp;
 	enum nl80211_channel_type superchan = NL80211_CHAN_NO_HT;
 	bool result;
-
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 	printk(KERN_INFO "ieee80211_set_channel_type()\n");
-
+#endif
 	mutex_lock(&local->iflist_mtx);
 
 	list_for_each_entry(tmp, &local->interfaces, list) {

@@ -1132,10 +1132,11 @@ static bool nl80211_can_set_dev_channel(struct wireless_dev *wdev)
 	 */
 
 	bool ret_value;
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 	printk (KERN_INFO "nl80211_can_set_dev_channel()\n"); /*JM*/
+#endif
 
 	if (!wdev) {
-		printk(KERN_INFO "wdev is null\n"); /*JM*/
 		return false;
 	}
 
@@ -1145,10 +1146,11 @@ static bool nl80211_can_set_dev_channel(struct wireless_dev *wdev)
 		wdev->iftype == NL80211_IFTYPE_MONITOR ||
 		wdev->iftype == NL80211_IFTYPE_P2P_GO || 
 		wdev->iftype == NL80211_IFTYPE_WAVE; /*WAVE should also be allowed*/
-
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 	if (ret_value == 0) {
 		printk(KERN_INFO "cannot set channel only AP, mesh, WDS allowed\n");  /*JM*/
 	}
+#endif
 	return ret_value;
 }
 
@@ -1163,13 +1165,11 @@ static int __nl80211_set_channel(struct cfg80211_registered_device *rdev,
 	printk (KERN_INFO "__nl80211_set_channel()\n"); /*JM*/
 
 	if (!info->attrs[NL80211_ATTR_WIPHY_FREQ]) {
-		printk(KERN_INFO "!info->attrs[NL80211_ATTR_WIPHY_FREQ]\n");
 		return -EINVAL;
 	}
 		
 
 	if (!nl80211_can_set_dev_channel(wdev)) {
-		printk(KERN_INFO "NOT SUPPORTED\n");
 		return -EOPNOTSUPP;
 	}
 		
@@ -1185,9 +1185,9 @@ static int __nl80211_set_channel(struct cfg80211_registered_device *rdev,
 	}
 
 	freq = nla_get_u32(info->attrs[NL80211_ATTR_WIPHY_FREQ]);
-
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 	printk(KERN_INFO "Setting to frecuency: %d\n", freq);
-
+#endif
 	mutex_lock(&rdev->devlist_mtx);
 	if (wdev) {
 		wdev_lock(wdev);
@@ -1205,8 +1205,9 @@ static int nl80211_set_channel(struct sk_buff *skb, struct genl_info *info)
 {
 	struct cfg80211_registered_device *rdev = info->user_ptr[0];
 	struct net_device *netdev = info->user_ptr[1];
-
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 	printk (KERN_INFO "nl80211_set_channel()\n"); /*JM*/
+#endif
 	return __nl80211_set_channel(rdev, netdev->ieee80211_ptr, info);
 }
 
@@ -1217,7 +1218,6 @@ static int nl80211_set_wds_peer(struct sk_buff *skb, struct genl_info *info)
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	const u8 *bssid;
 
-	printk (KERN_INFO "nl80211_set_wds_peer()\n"); /*JM*/
 	if (!info->attrs[NL80211_ATTR_MAC])
 		return -EINVAL;
 
@@ -1246,8 +1246,9 @@ static int nl80211_set_wiphy(struct sk_buff *skb, struct genl_info *info)
 	u8 retry_short = 0, retry_long = 0;
 	u32 frag_threshold = 0, rts_threshold = 0;
 	u8 coverage_class = 0;
-
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 	printk (KERN_INFO "nl80211_set_wiphy()\n"); /*JM*/
+#endif
 	/*
 	 * Try to find the wiphy and netdev. Normally this
 	 * function shouldn't need the netdev, but this is
@@ -1660,17 +1661,14 @@ static int nl80211_set_interface(struct sk_buff *skb, struct genl_info *info)
 	struct net_device *dev = info->user_ptr[1];
 	u32 _flags, *flags = NULL;
 	bool change = false;
-
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 	printk(KERN_INFO "nl80211_set_interface()\n"); /*JM*/
-
+#endif
 	memset(&params, 0, sizeof(params));
 
 	otype = ntype = dev->ieee80211_ptr->iftype;
 
-	printk (KERN_INFO "otype = %d\n", otype); /*JM*/
-
 	if (info->attrs[NL80211_ATTR_IFTYPE]) {
-		printk (KERN_INFO "info->attrs[NL80211_ATTR_IFTYPE]\n"); /*JM*/
 		ntype = nla_get_u32(info->attrs[NL80211_ATTR_IFTYPE]);
 		if (otype != ntype) {
 			change = true;
@@ -1685,8 +1683,6 @@ static int nl80211_set_interface(struct sk_buff *skb, struct genl_info *info)
 	if (info->attrs[NL80211_ATTR_MESH_ID]) {
 		
 		struct wireless_dev *wdev = dev->ieee80211_ptr;
-
-		printk (KERN_INFO "info->attrs[NL80211_ATTR_MESH_ID]\n"); /*JM*/
 
 		if (ntype != NL80211_IFTYPE_MESH_POINT)
 			return -EINVAL;
@@ -1704,20 +1700,16 @@ static int nl80211_set_interface(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	if (info->attrs[NL80211_ATTR_4ADDR]) {
-		printk (KERN_INFO "info->attrs[NL80211_ATTR_4ADDR]\n"); /*JM*/
 		params.use_4addr = !!nla_get_u8(info->attrs[NL80211_ATTR_4ADDR]);
 		change = true;
 		err = nl80211_valid_4addr(rdev, dev, params.use_4addr, ntype);
 		if (err)
 			return err;
 	} else {
-		printk (KERN_INFO "!info->attrs[NL80211_ATTR_4ADDR]\n"); /*JM*/
-		printk (KERN_INFO "params.use_4addr = -1;\n"); /*JM*/
 		params.use_4addr = -1;
 	}
 
 	if (info->attrs[NL80211_ATTR_MNTR_FLAGS]) {
-		printk (KERN_INFO "info->attrs[NL80211_ATTR_MNTR_FLAGS]\n"); /*JM*/
 		if (ntype != NL80211_IFTYPE_MONITOR)
 			return -EINVAL;
 		err = parse_monitor_flags(info->attrs[NL80211_ATTR_MNTR_FLAGS],
@@ -1730,7 +1722,9 @@ static int nl80211_set_interface(struct sk_buff *skb, struct genl_info *info)
 	}
 
 	if (change) {
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 		printk (KERN_INFO "changing interface\n");
+#endif
 		err = cfg80211_change_iface(rdev, dev, ntype, flags, &params);
 	}
 		

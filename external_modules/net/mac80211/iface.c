@@ -107,8 +107,9 @@ static int ieee80211_check_concurrent_iface(struct ieee80211_sub_if_data *sdata,
 	/* we hold the RTNL here so can safely walk the list */
 	list_for_each_entry(nsdata, &local->interfaces, list) {
 		struct net_device *ndev = nsdata->dev;
-
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 		printk(KERN_INFO "interface type = %d\n", nsdata->vif.type);
+#endif
 		if (ndev != dev && ieee80211_sdata_running(nsdata)) { 
 			/*JM it only goes in here if the dev already exists
 			 *or if the device is up*/
@@ -217,7 +218,9 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 		/* no special treatment */
 		break;
 	case NL80211_IFTYPE_WAVE:
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 		printk(KERN_INFO "NL80211_IFTYPE_WAVE\n");
+#endif
 		changed |= BSS_CHANGED_BSSID;		/*JM doing this here for now*/
 		break;
 	case NL80211_IFTYPE_UNSPECIFIED:
@@ -283,9 +286,7 @@ static int ieee80211_do_open(struct net_device *dev, bool coming_up)
 		netif_carrier_on(dev);
 		break;
 	default:
-		printk(KERN_INFO "default\n"); /*JM*/
 		if (coming_up) {
-			printk(KERN_INFO "coming_up\n"); /*JM*/
 			res = drv_add_interface(local, sdata);
 			if (res)
 				goto err_stop;
@@ -389,7 +390,9 @@ static int ieee80211_open(struct net_device *dev)
 
 	/* fail early if user set an invalid address */
 	if (!is_valid_ether_addr(dev->dev_addr)) {
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 		printk(KERN_INFO "invalid ethernet address\n"); /*JM*/
+#endif
 		return -EADDRNOTAVAIL;
 	}
 		
@@ -742,8 +745,9 @@ static void ieee80211_iface_work(struct work_struct *work)
 	struct sk_buff *skb;
 	struct sta_info *sta;
 	struct ieee80211_ra_tid *ra_tid;
-
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 	printk(KERN_INFO "ieee80211_iface_work()\n");
+#endif
 
 	if (!ieee80211_sdata_running(sdata)) {
 		return;
@@ -766,16 +770,20 @@ static void ieee80211_iface_work(struct work_struct *work)
 	/* first process rx frames */
 	while ((skb = skb_dequeue(&sdata->skb_queue))) {
 		struct ieee80211_mgmt *mgmt = (void *)skb->data;
-
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 		printk(KERN_INFO "skb_dequeue skb = %p\n", skb); /*JM*/
-
+#endif
 		if (skb->pkt_type == IEEE80211_SDATA_QUEUE_AGG_START) {		/*JM defines its own packet types*/
-			printk(KERN_INFO "IEEE80211_SDATA_QUEUE_AGG_START\n"); 	/*in ieee80211_i.h instead of using*/  
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
+			printk(KERN_INFO "IEEE80211_SDATA_QUEUE_AGG_START\n"); 	/*in ieee80211_i.h instead of using*/
+#endif  
 			ra_tid = (void *)&skb->cb;								/*the ones defined in include/linux/if_packet.h*/	   	
 			ieee80211_start_tx_ba_cb(&sdata->vif, ra_tid->ra,
 						 ra_tid->tid);
 		} else if (skb->pkt_type == IEEE80211_SDATA_QUEUE_AGG_STOP) {
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 			printk(KERN_INFO "IEEE80211_SDATA_QUEUE_AGG_STOP\n"); 	/*JM*/
+#endif
 			ra_tid = (void *)&skb->cb;
 			ieee80211_stop_tx_ba_cb(&sdata->vif, ra_tid->ra,
 						ra_tid->tid);
@@ -783,9 +791,10 @@ static void ieee80211_iface_work(struct work_struct *work)
 			   mgmt->u.action.category == WLAN_CATEGORY_BACK) {
 
 			int len = skb->len;
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 			printk(KERN_INFO "ieee80211_is_action(mgmt->frame_control) ==  true\n"); /*JM*/
 			printk(KERN_INFO "mgmt->u.action.category == WLAN_CATEGORY_BACK\n"); /*JM*/
-
+#endif
 			mutex_lock(&local->sta_mtx);
 			sta = sta_info_get_bss(sdata, mgmt->sa);
 			if (sta) {
@@ -810,8 +819,9 @@ static void ieee80211_iface_work(struct work_struct *work)
 			mutex_unlock(&local->sta_mtx);
 		} else if (ieee80211_is_data_qos(mgmt->frame_control)) {
 			struct ieee80211_hdr *hdr = (void *)mgmt;
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 			printk(KERN_INFO "ieee80211_is_data_qos(mgmt->frame_control) ==  true\n"); /*JM*/
-
+#endif
 			/*
 			 * So the frame isn't mgmt, but frame_control
 			 * is at the right place anyway, of course, so
@@ -846,7 +856,6 @@ static void ieee80211_iface_work(struct work_struct *work)
 			ieee80211_sta_rx_queued_mgmt(sdata, skb);
 			break;
 		case NL80211_IFTYPE_ADHOC:
-			printk(KERN_INFO "sdata->vif.type == NL80211_IFTYPE_ADHOC\n");
 			ieee80211_ibss_rx_queued_mgmt(sdata, skb);
 			break;
 		case NL80211_IFTYPE_WAVE:
@@ -935,7 +944,9 @@ static void ieee80211_setup_sdata(struct ieee80211_sub_if_data *sdata,
 		ieee80211_ibss_setup_sdata(sdata);
 		break;
 	case NL80211_IFTYPE_WAVE:
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
 		printk(KERN_INFO "setup wave iface\n");
+#endif
 		ieee80211_wbss_setup_sdata(sdata);
 		break;
 	case NL80211_IFTYPE_MESH_POINT:
@@ -1046,7 +1057,9 @@ int ieee80211_if_change_type(struct ieee80211_sub_if_data *sdata,
 	/* Setting ad-hoc mode on non-IBSS channel is not supported. */
 	if (sdata->local->oper_channel->flags & IEEE80211_CHAN_NO_IBSS &&
 	    type == NL80211_IFTYPE_ADHOC) {
-		printk (KERN_INFO "setting ad-hoc mode on non-IBSS channel is not supported\n"); /*JM*/
+#ifdef CONFIG_MAC80211_EXTRA_DEBUG
+		printk (KERN_INFO "setting ad-hoc mode on non-IBSS channel is not supported\n");
+#endif 
 		return -EOPNOTSUPP;
 	}
 		

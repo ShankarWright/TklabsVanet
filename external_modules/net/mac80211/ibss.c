@@ -52,8 +52,9 @@ static void __ieee80211_sta_join_ibss(struct ieee80211_sub_if_data *sdata,
 	u32 bss_change;
 	u8 supp_rates[IEEE80211_MAX_SUPP_RATES];
 	enum nl80211_channel_type channel_type;
-
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 	printk (KERN_INFO "__ieee80211_sta_join_ibss()\n");
+#endif
 	lockdep_assert_held(&ifibss->mtx);
 
 	/* Reset own TSF to allow time synchronization work. */
@@ -220,8 +221,9 @@ static void ieee80211_sta_join_ibss(struct ieee80211_sub_if_data *sdata,
 	u32 basic_rates;
 	int i, j;
 	u16 beacon_int = cbss->beacon_interval;
-
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 	printk (KERN_INFO "ieee80211_sta_join_ibss()\n");
+#endif
 	lockdep_assert_held(&sdata->u.ibss.mtx);
 
 	if (beacon_int < 10)
@@ -258,8 +260,9 @@ static struct sta_info *ieee80211_ibss_finish_sta(struct sta_info *sta,
 {
 	struct ieee80211_sub_if_data *sdata = sta->sdata;
 	u8 addr[ETH_ALEN];
-
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 	printk(KERN_INFO "ieee80211_ibss_finish_sta()\n"); /*JM*/
+#endif
 	memcpy(addr, sta->sta.addr, ETH_ALEN);
 
 #ifdef CONFIG_MAC80211_VERBOSE_DEBUG
@@ -647,8 +650,9 @@ static void ieee80211_sta_merge_ibss(struct ieee80211_sub_if_data *sdata)
 {
 	
 	struct ieee80211_if_ibss *ifibss = &sdata->u.ibss;
-
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 	printk (KERN_INFO "ieee80211_sta_merge_ibss()\n"); /*JM*/
+#endif
 	lockdep_assert_held(&ifibss->mtx);
 
 	mod_timer(&ifibss->timer,
@@ -679,8 +683,9 @@ static void ieee80211_sta_create_ibss(struct ieee80211_sub_if_data *sdata)
 	u8 bssid[ETH_ALEN];
 	u16 capability;
 	int i;
-
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 	printk(KERN_INFO "ieee80211_sta_create_ibss()\n"); /*JM*/
+#endif
 	lockdep_assert_held(&ifibss->mtx);
 
 	if (ifibss->fixed_bssid) {
@@ -724,9 +729,9 @@ static void ieee80211_sta_find_ibss(struct ieee80211_sub_if_data *sdata)
 	const u8 *bssid = NULL;
 	int active_ibss;
 	u16 capability;
-
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 	printk (KERN_INFO "ieee80211_sta_find_ibss()\n"); /*JM*/
-
+#endif
 	lockdep_assert_held(&ifibss->mtx);
 
 	active_ibss = ieee80211_sta_active_ibss(sdata);
@@ -917,9 +922,9 @@ void ieee80211_ibss_rx_queued_mgmt(struct ieee80211_sub_if_data *sdata,
 	struct ieee80211_rx_status *rx_status;
 	struct ieee80211_mgmt *mgmt;
 	u16 fc;
-
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 	printk (KERN_INFO "ieee80211_ibss_rx_queued_mgmt()\n"); /*JM*/
-
+#endif
 	rx_status = IEEE80211_SKB_RXCB(skb);
 	mgmt = (struct ieee80211_mgmt *) skb->data;
 	fc = le16_to_cpu(mgmt->frame_control);
@@ -927,28 +932,38 @@ void ieee80211_ibss_rx_queued_mgmt(struct ieee80211_sub_if_data *sdata,
 	mutex_lock(&sdata->u.ibss.mtx);
 
 	if (!sdata->u.ibss.ssid_len) {
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 		printk (KERN_INFO "not ready to merge yet\n"); /*JM*/
+#endif
 		goto mgmt_out; /* not ready to merge yet */
 	}
 		
 
 	switch (fc & IEEE80211_FCTL_STYPE) {
 	case IEEE80211_STYPE_PROBE_REQ:
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 		printk (KERN_INFO "IEEE80211_STYPE_PROBE_REQ\n"); /*JM*/
+#endif
 		ieee80211_rx_mgmt_probe_req(sdata, skb);
 		break;
 	case IEEE80211_STYPE_PROBE_RESP:
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 		printk (KERN_INFO "IEEE80211_STYPE_PROBE_RESP\n"); /*JM*/
+#endif
 		ieee80211_rx_mgmt_probe_resp(sdata, mgmt, skb->len,
 					     rx_status);
 		break;
 	case IEEE80211_STYPE_BEACON:
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 		printk (KERN_INFO "IEEE80211_STYPE_BEACON\n"); /*JM*/
+#endif
 		ieee80211_rx_mgmt_beacon(sdata, mgmt, skb->len,
 					 rx_status);
 		break;
 	case IEEE80211_STYPE_AUTH:
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 		printk (KERN_INFO "IEEE80211_STYPE_AUTH\n");
+#endif
 		ieee80211_rx_mgmt_auth_ibss(sdata, mgmt, skb->len);
 		break;
 	}
@@ -961,8 +976,9 @@ void ieee80211_ibss_work(struct ieee80211_sub_if_data *sdata)
 {
 	struct ieee80211_if_ibss *ifibss = &sdata->u.ibss;
 	struct sta_info *sta;
-
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 	printk (KERN_INFO "ieee80211_ibss_work()\n");
+#endif
 	mutex_lock(&ifibss->mtx);
 
 	/*
@@ -1009,8 +1025,6 @@ static void ieee80211_ibss_timer(unsigned long data)
 	struct ieee80211_if_ibss *ifibss = &sdata->u.ibss;
 	struct ieee80211_local *local = sdata->local;
 
-	printk (KERN_INFO "ieee80211_ibss_timer(), jiffies = %lu\n", jiffies);
-
 	if (local->quiescing) {
 		ifibss->timer_running = true;
 		return;
@@ -1042,7 +1056,9 @@ void ieee80211_ibss_restart(struct ieee80211_sub_if_data *sdata)
 void ieee80211_ibss_setup_sdata(struct ieee80211_sub_if_data *sdata)
 {
 	struct ieee80211_if_ibss *ifibss = &sdata->u.ibss;
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 	printk (KERN_INFO "ieee80211_ibss_setup_sdata()\n"); /*JM*/
+#endif
 	setup_timer(&ifibss->timer, ieee80211_ibss_timer,
 		    (unsigned long) sdata);
 	mutex_init(&ifibss->mtx);
@@ -1072,8 +1088,9 @@ int ieee80211_ibss_join(struct ieee80211_sub_if_data *sdata,
 {
 	struct sk_buff *skb;
 	u32 changed = 0;
-
+#ifdef CONFIG_MAC80211_IBSS_DEBUG
 	printk (KERN_INFO "ieee80211_ibss_join()\n"); /*JM*/
+#endif
 
 	skb = dev_alloc_skb(sdata->local->hw.extra_tx_headroom +
 			    sizeof(struct ieee80211_hdr_3addr) +

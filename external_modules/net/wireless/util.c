@@ -80,17 +80,22 @@ struct ieee80211_channel *__ieee80211_get_channel(struct wiphy *wiphy,
 	enum ieee80211_band band;
 	struct ieee80211_supported_band *sband;
 	int i;
-
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 	printk(KERN_INFO "__ieee80211_get_channel()\n"); /*JM*/
+#endif
 
 	for (band = 0; band < IEEE80211_NUM_BANDS; band++) {
 		sband = wiphy->bands[band];
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 		printk(KERN_INFO "BAND: %d\n", band);
+#endif
 		if (!sband)
 			continue;
 
 		for (i = 0; i < sband->n_channels; i++) {
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 			printk(KERN_INFO "checking channel %d frecuency %d\n", i, sband->channels[i].center_freq); /*JM*/
+#endif
 			if (sband->channels[i].center_freq == freq) {
 				return &sband->channels[i];
 			}
@@ -327,8 +332,6 @@ int ieee80211_data_to_8023(struct sk_buff *skb, const u8 *addr,
 	u8 *payload;
 	u8 dst[ETH_ALEN];
 	u8 src[ETH_ALEN] __aligned(2);
-
-	//printk (KERN_INFO "cfg80211: ieee80211_data_to_8023()\n"); /*JM*/
 
 	if (unlikely(!ieee80211_is_data_present(hdr->frame_control))) {
 		return -1;
@@ -808,8 +811,9 @@ int cfg80211_change_iface(struct cfg80211_registered_device *rdev,
 {
 	int err;
 	enum nl80211_iftype otype = dev->ieee80211_ptr->iftype;
-
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 	printk (KERN_INFO "cfg80211_change_iface()\n");
+#endif
 	ASSERT_RDEV_LOCK(rdev);
 
 	/* don't support changing VLANs, you just re-create them */

@@ -86,7 +86,7 @@ static void ieee80211_wbss_timer(unsigned long data)
 	printk(KERN_INFO "ieee80211_wbss_timer(), jiffies = %lu\n", jiffies);
 
 	if (chan) {
-		printk(KERN_INFO "current channel: \n band: %d, freq: %d, bw: %dMHz\n",
+		printk(KERN_INFO "current channel: band: %d, freq: %d, bw: %dMHz\n",
 												chan->band,
 												chan->center_freq,
 												chan->target_bw);
@@ -115,6 +115,7 @@ static void ieee80211_sta_join_wbss(void)
 int ieee80211_wbss_join(struct ieee80211_sub_if_data *sdata) {
 
 	struct ieee80211_if_wbss *ifwbss = &sdata->u.wbss;
+	struct ieee80211_supported_band *sband = sdata->wdev.wiphy->bands[IEEE80211_BAND_5GHZ];
 	//struct ieee80211_channel *chan = sdata->local->oper_channel;
 	int i;
 	printk (KERN_INFO "ieee80211_wbss_join()\n"); /*JM*/
@@ -123,9 +124,20 @@ int ieee80211_wbss_join(struct ieee80211_sub_if_data *sdata) {
 	//ieee80211_queue_work(&sdata->local->hw, &sdata->work);
 
 
+	printk(KERN_INFO "supported bit rates: %d\n", sband->n_bitrates);
+	for (i = 0; i < sband->n_bitrates; i++) {
+		printk(KERN_INFO "bitrate: %d flags: 0%x, hw value: %d, hw_value_short: %d\n", 
+								sband->bitrates[i].bitrate,
+								sband->bitrates[i].flags,
+								sband->bitrates[i].hw_value,
+								sband->bitrates[i].hw_value_short);
+		ifwbss->basic_rates |= BIT(i);
+	}
 
+	printk(KERN_INFO "basic_rates = 0x%x\n", ifwbss->basic_rates);
 	mod_timer(&ifwbss->timer,
 		  round_jiffies(jiffies + DEFAULT_SCH_TIME));
+
 
 
 	return 0;
@@ -218,17 +230,6 @@ void ieee80211_wbss_work(struct ieee80211_sub_if_data *sdata)
 	int i;
 	static int channel = 0;
 
-	if (channel == 0) {
-		printk(KERN_INFO "supported bit rates: %d\n", sband->n_bitrates);
-		for (i = 0; i < sband->n_bitrates; i++) {
-			printk(KERN_INFO "bitrate: %d flags: 0%x, hw value: %d, hw_value_short: %d\n", 
-								sband->bitrates[i].bitrate,
-								sband->bitrates[i].flags,
-								sband->bitrates[i].hw_value,
-								sband->bitrates[i].hw_value_short);
-		}
-
-	}
 	if (channel < sband->n_channels) {
 		ieee80211_wbss_set_channel(sdata, channel++);
 		mod_timer(&ifwbss->timer,

@@ -8,6 +8,7 @@ cfg80211-y += regdb.o
 ccflags-y += -DCFG80211_REG_DEBUG
 ccflags-y += -DCONFIG_CFG80211_INTERNAL_REGDB
 ccflags-y += -DCONFIG_CFG80211_DEBUGFS
+#ccflags-y += -DCONFIG_CFG80211_EXTRA_DEBUG
 ccflags-y += -D__CHECK_ENDIAN__
 
 $(obj)/regdb.c: $(src)/db.txt $(src)/genregdb.awk

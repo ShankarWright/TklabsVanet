@@ -384,6 +384,22 @@ static void ieee80211_add_ht_ie(struct ieee80211_sub_if_data *sdata,
 	ieee80211_ie_build_ht_cap(pos, &ht_cap, cap);
 }
 
+static void ieee80211_send_timing_advertisement(struct ieee80211_sub_if_data *sdata) {
+	struct ieee80211_local *local = sdata->local;
+	struct ieee80211_supported_band *sband;
+	struct ieee80211_mgmt *mgmt;
+	struct sk_buff *skb;
+
+	skb = alloc_skb(local->hw.extra_tx_headroom +
+			sizeof(*mgmt) + /* bit too much but doesn't matter */
+			2, //rest of timing advertisment frame
+			GFP_KERNEL);
+	if (!skb)
+		return;
+
+	ieee80211_tx_skb(sdata, skb);
+}
+
 static void ieee80211_send_assoc(struct ieee80211_sub_if_data *sdata)
 {
 	struct ieee80211_local *local = sdata->local;

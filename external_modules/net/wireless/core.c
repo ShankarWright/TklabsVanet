@@ -784,9 +784,9 @@ static int cfg80211_netdev_notifier_call(struct notifier_block * nb,
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	struct cfg80211_registered_device *rdev;
 	int ret;
-
+#ifdef CONFIG_CFG80211_EXTRA_DEBUG
 	printk(KERN_INFO "cfg80211_netdev_notifier_call()\n"); /*JM*/
-
+#endif
 	if (!wdev)
 		return NOTIFY_DONE;
 
