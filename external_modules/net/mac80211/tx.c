@@ -625,6 +625,9 @@ ieee80211_tx_h_rate_ctrl(struct ieee80211_tx_data *tx)
 	struct ieee80211_tx_rate_control txrc;
 	bool assoc = false;
 
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_DEBUG "ieee80211_tx_h_rate_ctrl()\n"); /*JM*/
+#endif
 	memset(&txrc, 0, sizeof(txrc));
 
 	sband = tx->local->hw.wiphy->bands[tx->channel->band];
@@ -687,14 +690,28 @@ ieee80211_tx_h_rate_ctrl(struct ieee80211_tx_data *tx)
 	 * least send the frame at the lowest bit rate.
 	 */
 	rate_control_get_rate(tx->sdata, tx->sta, &txrc);
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_DEBUG "reported rate: idx=%d, count=%d, flags=0x%X\n", 
+									txrc.reported_rate.idx, 
+									txrc.reported_rate.count, 
+									txrc.reported_rate.flags); /*JM*/
+#endif
 
 	if (unlikely(info->control.rates[0].idx < 0))
 		return TX_DROP;
 
 	if (txrc.reported_rate.idx < 0) {
-		txrc.reported_rate = info->control.rates[0];
-		if (tx->sta && ieee80211_is_data(hdr->frame_control))
+		txrc.reported_rate = info->control.rates[0]; 
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+		printk(KERN_DEBUG "new reported rate: idx=%d, count=%d, flags=0x%X\n", 
+									txrc.reported_rate.idx, 
+									txrc.reported_rate.count, 
+									txrc.reported_rate.flags); /*JM*/
+#endif		
+		if (tx->sta && ieee80211_is_data(hdr->frame_control)) {
 			tx->sta->last_tx_rate = txrc.reported_rate;
+		} 
+			
 	} else if (tx->sta)
 		tx->sta->last_tx_rate = txrc.reported_rate;
 
@@ -1141,7 +1158,7 @@ ieee80211_tx_prepare(struct ieee80211_sub_if_data *sdata,
 	int tid;
 	u8 *qc;
 
-	//printk(KERN_INFO "ieee80211_tx_prepare()\n");
+	printk(KERN_DEBUG "ieee80211_tx_prepare()\n"); /*JM*/
 
 	memset(tx, 0, sizeof(*tx));
 	tx->skb = skb;
@@ -1167,8 +1184,12 @@ ieee80211_tx_prepare(struct ieee80211_sub_if_data *sdata,
 		   tx->sdata->control_port_protocol == tx->skb->protocol) {
 		tx->sta = sta_info_get_bss(sdata, hdr->addr1);
 	}
-	if (!tx->sta)
+	if (!tx->sta) {
+
 		tx->sta = sta_info_get(sdata, hdr->addr1);
+	}
+		
+	printk(KERN_DEBUG "tx->sta = 0x%p", tx->sta); /*JM*/
 
 	if (tx->sta && ieee80211_is_data_qos(hdr->frame_control) &&
 	    !ieee80211_is_qos_nullfunc(hdr->frame_control) &&
@@ -1390,7 +1411,7 @@ static bool ieee80211_tx(struct ieee80211_sub_if_data *sdata,
 	bool result = true;
 	int led_len;
 
-	//printk (KERN_INFO "ieee80211_tx()\n");
+	printk (KERN_DEBUG "ieee80211_tx()\n"); /*JM*/
 
 	if (unlikely(skb->len < 10)) {
 		dev_kfree_skb(skb);
@@ -1402,6 +1423,8 @@ static bool ieee80211_tx(struct ieee80211_sub_if_data *sdata,
 	/* initialises tx */
 	led_len = skb->len;
 	res_prepare = ieee80211_tx_prepare(sdata, &tx, skb);
+
+	printk(KERN_DEBUG "rx.sta = 0x%p\n", tx.sta); /*JM*/
 
 	if (unlikely(res_prepare == TX_DROP)) {
 		dev_kfree_skb(skb);

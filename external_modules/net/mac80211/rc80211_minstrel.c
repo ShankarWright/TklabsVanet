@@ -230,6 +230,10 @@ minstrel_get_rate(void *priv, struct ieee80211_sta *sta,
 	int mrr_ndx[3];
 	int sample_rate;
 
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_DEBUG "minstrel_get_rate()\n");
+#endif
+
 	if (rate_control_send_low(sta, priv_sta, txrc))
 		return;
 
@@ -384,7 +388,14 @@ minstrel_rate_init(void *priv, struct ieee80211_supported_band *sband,
 	unsigned int i, n = 0;
 	unsigned int t_slot = 9; /* FIXME: get real slot time */
 
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_DEBUG "minstrel_rate_init()\n");
+#endif
+
 	mi->lowest_rix = rate_lowest_index(sband, sta);
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_DEBUG "mi->lowest_rix = %d\n", mi->lowest_rix);
+#endif
 	ctl_rate = &sband->bitrates[mi->lowest_rix];
 	mi->sp_ack_dur = ieee80211_frame_duration(local, 10, ctl_rate->bitrate,
 				!!(ctl_rate->flags & IEEE80211_RATE_ERP_G), 1);
@@ -454,6 +465,10 @@ minstrel_alloc_sta(void *priv, struct ieee80211_sta *sta, gfp_t gfp)
 	int max_rates = 0;
 	int i;
 
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_INFO "minstrel_alloc_sta()\n");
+#endif
+
 	mi = kzalloc(sizeof(struct minstrel_sta_info), gfp);
 	if (!mi)
 		return NULL;
@@ -487,6 +502,9 @@ minstrel_free_sta(void *priv, struct ieee80211_sta *sta, void *priv_sta)
 {
 	struct minstrel_sta_info *mi = priv_sta;
 
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_INFO "minstrel_free_sta()\n");
+#endif
 	kfree(mi->sample_table);
 	kfree(mi->r);
 	kfree(mi);
@@ -496,6 +514,10 @@ static void *
 minstrel_alloc(struct ieee80211_hw *hw, struct dentry *debugfsdir)
 {
 	struct minstrel_priv *mp;
+
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_INFO "minstrel alloc()\n");
+#endif
 
 	mp = kzalloc(sizeof(struct minstrel_priv), GFP_ATOMIC);
 	if (!mp)
@@ -567,6 +589,9 @@ struct rate_control_ops mac80211_minstrel = {
 int __init
 rc80211_minstrel_init(void)
 {
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_INFO "rc80211_minstrel_init()\n");
+#endif
 	return ieee80211_rate_control_register(&mac80211_minstrel);
 }
 

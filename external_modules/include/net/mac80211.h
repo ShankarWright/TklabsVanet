@@ -1271,6 +1271,7 @@ struct ieee80211_hw {
 	struct ieee80211_conf conf;
 	struct wiphy *wiphy;
 	const char *rate_control_algorithm;
+	struct ieee80211_rate *rate;
 	void *priv;
 	u32 flags;
 	unsigned int extra_tx_headroom;
@@ -1329,7 +1330,14 @@ ieee80211_get_tx_rate(const struct ieee80211_hw *hw,
 {
 	if (WARN_ON_ONCE(c->control.rates[0].idx < 0))
 		return NULL;
-	return &hw->wiphy->bands[c->band]->bitrates[c->control.rates[0].idx];
+	return c->control.sta ? &hw->wiphy->bands[c->band]->bitrates[c->control.rates[0].idx] : hw->rate;
+}
+
+static inline void
+ieee80211_set_tx_rate(struct ieee80211_hw *hw,
+				struct ieee80211_rate *r)
+{
+	hw->rate = r;
 }
 
 static inline struct ieee80211_rate *

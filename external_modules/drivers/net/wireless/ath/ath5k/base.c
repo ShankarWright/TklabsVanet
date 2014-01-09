@@ -720,6 +720,7 @@ ath5k_txbuf_setup(struct ath5k_hw *ah, struct ath5k_buf *bf,
 	u16 cts_rate = 0;
 	u16 duration = 0;
 	u8 rc_flags;
+	printk(KERN_DEBUG "ath5k_txbuf_setup()\n");
 #ifdef CONFIG_ATH5K_TKLABS_DEBUG
 	ATH5K_INFO(ah, "ath5k_txbuf_setup()\n"); /*JM*/
 #endif
@@ -729,7 +730,7 @@ ath5k_txbuf_setup(struct ath5k_hw *ah, struct ath5k_buf *bf,
 	/* XXX endianness */
 	bf->skbaddr = dma_map_single(ah->dev, skb->data, skb->len,
 			DMA_TO_DEVICE);
-
+	printk(KERN_DEBUG "info->control.sta: 0x%p\n", info->control.sta);
 	rate = ieee80211_get_tx_rate(ah->hw, info);
 #ifdef CONFIG_ATH5K_TKLABS_DEBUG
 	ATH5K_INFO(ah, "rate: %d, flags: 0x%x\n", rate->bitrate, rate->flags);/*JM*/

@@ -158,6 +158,10 @@ static struct rate_control_ref *rate_control_alloc(const char *name,
 	struct dentry *debugfsdir = NULL;
 	struct rate_control_ref *ref;
 
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_INFO "rate_control_ref()\n");
+#endif
+
 	ref = kmalloc(sizeof(struct rate_control_ref), GFP_KERNEL);
 	if (!ref)
 		goto fail_ref;
@@ -493,6 +497,10 @@ int ieee80211_init_rate_ctrl_alg(struct ieee80211_local *local,
 				 const char *name)
 {
 	struct rate_control_ref *ref;
+
+#ifdef CONFIG_MAC80211_RATE_DEBUG
+	printk(KERN_INFO "ieee80211_init_rate_ctrl_alg()\n");
+#endif
 
 	ASSERT_RTNL();
 

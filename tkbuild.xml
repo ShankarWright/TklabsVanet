@@ -74,6 +74,7 @@
     <Copy src="../../external_modules/include/linux/ieee80211.h" dest="include/linux/ieee80211.h" />
     <Copy src="../../external_modules/include/linux/nl80211.h" dest="include/linux/nl80211.h" />
     <Copy src="../../external_modules/include/net/cfg80211.h" dest="include/net/cfg80211.h" />
+    <Copy src="../../external_modules/include/net/mac80211.h" dest="include/net/mac80211.h" />
     <Run>./crossmake $${NCPU} all</Run>
     <Run ignoreerror="true">./crossmake install 2>/dev/null</Run>
     <Run>./crossmake modules_install >/dev/null</Run>
@@ -83,13 +84,15 @@
     <echo>Building cfg80211 module</echo>
     <Copy src="../../include/linux/nl80211.h" dest="../../../build/linux-3.4.39/include/linux/nl80211.h" />
     <Copy src="../../include/linux/ieee80211.h" dest="../../../build/linux-3.4.39/include/linux/ieee80211.h" />
-    <Copy src="../../include/net/cfg80211.h" dest="../../../build/linux-3.4.39/include/net/cfg80211.h" />   
+    <Copy src="../../include/net/cfg80211.h" dest="../../../build/linux-3.4.39/include/net/cfg80211.h" /> 
+    <Copy src="../../include/net/mac80211.h" dest="../../../build/linux-3.4.39/include/net/mac80211.h" />  
     <Run>./crossmake all</Run>
     <Run>./crossmake modules_install</Run>
 </object>
 
 <object name="mac" target="mac extmod" directory="external_modules/net/mac80211/">
     <echo>Building mac80211 module</echo>
+    <Copy src="../../include/net/mac80211.h" dest="../../../build/linux-3.4.39/include/net/mac80211.h" />
     <Run>./crossmake all</Run>
     <Run>./crossmake modules_install</Run>
 </object>

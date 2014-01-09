@@ -22,8 +22,8 @@
 #include "rate.h"
 
  #define IEEE80211_WBSS_MAX_STA_ENTRIES 128
- #define DEFAULT_CCH_TIME HZ * 10 /*10 second*/
- #define DEFAULT_SCH_TIME HZ * 10
+ #define DEFAULT_CCH_TIME HZ * 1 /*1 second*/
+ #define DEFAULT_SCH_TIME HZ * 1
 
 
 static int ieee80211_wbss_set_channel(struct ieee80211_sub_if_data *sdata,
@@ -115,7 +115,7 @@ static void ieee80211_sta_join_wbss(void)
 int ieee80211_wbss_join(struct ieee80211_sub_if_data *sdata) {
 
 	struct ieee80211_if_wbss *ifwbss = &sdata->u.wbss;
-	struct ieee80211_supported_band *sband = sdata->wdev.wiphy->bands[IEEE80211_BAND_5GHZ];
+	
 	//struct ieee80211_channel *chan = sdata->local->oper_channel;
 	int i;
 	printk (KERN_INFO "ieee80211_wbss_join()\n"); /*JM*/
@@ -123,18 +123,6 @@ int ieee80211_wbss_join(struct ieee80211_sub_if_data *sdata) {
 
 	//ieee80211_queue_work(&sdata->local->hw, &sdata->work);
 
-
-	printk(KERN_INFO "supported bit rates: %d\n", sband->n_bitrates);
-	for (i = 0; i < sband->n_bitrates; i++) {
-		printk(KERN_INFO "bitrate: %d flags: 0%x, hw value: %d, hw_value_short: %d\n", 
-								sband->bitrates[i].bitrate,
-								sband->bitrates[i].flags,
-								sband->bitrates[i].hw_value,
-								sband->bitrates[i].hw_value_short);
-		ifwbss->basic_rates |= BIT(i);
-	}
-
-	printk(KERN_INFO "basic_rates = 0x%x\n", ifwbss->basic_rates);
 	mod_timer(&ifwbss->timer,
 		  round_jiffies(jiffies + DEFAULT_SCH_TIME));
 
@@ -191,13 +179,24 @@ ieee80211_wbss_add_sta(struct ieee80211_sub_if_data *sdata,
 
 	return sta;
 }
+void ieee80211_wbss_set_bitrate(struct ieee80211_sub_if_data *sdata, int bitrate_idx) {
 
+	struct ieee80211_if_wbss *ifwbss = &sdata->u.wbss;
+	struct ieee80211_supported_band *sband = sdata->wdev.wiphy->bands[IEEE80211_BAND_5GHZ];
+	struct ieee80211_hw *hw = &sdata->local->hw;
+
+	hw->rate = &sband->bitrates[bitrate_idx];
+	printk(KERN_INFO "bitrate set to %dMB\n", hw->rate->bitrate/10);
+}
 void ieee80211_wbss_setup_sdata(struct ieee80211_sub_if_data *sdata)
 {
 	int ret;
 	int i;
 
 	struct ieee80211_if_wbss *ifwbss = &sdata->u.wbss;
+	struct ieee80211_supported_band *sband = sdata->wdev.wiphy->bands[IEEE80211_BAND_5GHZ];
+
+	printk (KERN_INFO "ieee80211_wbss_setup_sdata()\n");
 
 	/*the bssid has to be all ffs*/
 	for (i = 0; i < ETH_ALEN; i++) {
@@ -207,9 +206,21 @@ void ieee80211_wbss_setup_sdata(struct ieee80211_sub_if_data *sdata)
 	setup_timer(&ifwbss->timer, ieee80211_wbss_timer,
 		    (unsigned long) sdata);
 
-	printk (KERN_INFO "ieee80211_wbss_setup_sdata()\n"); 
+	 
 
-	/*for now I will call ieee80211_wbss_join() myself*/
+	printk(KERN_INFO "supported bit rates: %d\n", sband->n_bitrates);
+	for (i = 0; i < sband->n_bitrates; i++) {
+		printk(KERN_INFO "bitrate: %d flags: 0%x, hw value: %d, hw_value_short: %d\n", 
+								sband->bitrates[i].bitrate,
+								sband->bitrates[i].flags,
+								sband->bitrates[i].hw_value,
+								sband->bitrates[i].hw_value_short);
+		ifwbss->basic_rates |= BIT(i);
+	}
+
+	printk(KERN_INFO "basic_rates = 0x%x\n", ifwbss->basic_rates);
+
+	/*for now call ieee80211_wbss_join()*/
 
 	ret = ieee80211_wbss_join(sdata);
 	
@@ -234,10 +245,17 @@ void ieee80211_wbss_work(struct ieee80211_sub_if_data *sdata)
 		ieee80211_wbss_set_channel(sdata, channel++);
 		mod_timer(&ifwbss->timer,
 		  round_jiffies(jiffies + DEFAULT_SCH_TIME));
+
 	}
 
+	/*test code to check bitrate change*/
+	static int br_idx = 0;
+	ieee80211_wbss_set_bitrate(sdata, br_idx++);
+	if(br_idx > sband->n_bitrates) {
+		br_idx = 0;
+	} 
 
-		
+
 }
 
 
