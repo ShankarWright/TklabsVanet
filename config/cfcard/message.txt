@@ -1,0 +1,16 @@
+======================================================================
+FAU - tkLABS 
+
+Boot options:
+
+   vanet:	  Starts a local install for Vehicular Adhoc
+		  Network (VANET) Development
+   vanet-nfsroot: Starts an NFS Mounted install for Vehicular 
+		  Adhoc Network (VANET) Development (default!)
+   rescue:        Starts a minimal non persistent system for rescue
+                  operations (fallback)
+
+Rescue provided by YeaSoft Int'l - ALIX Ubuntu 10.04.04 LTS OS
+Bundle Version: 0.5
+(c) 2012 by YeaSoft Int'l
+======================================================================

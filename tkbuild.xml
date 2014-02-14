@@ -14,6 +14,8 @@
     <echo>- buildroot - builds initial buildroot and toolchain</echo>
     <echo>- kernel    - builds linux kernel, builds buildroot</echo>
     <echo>- nfsroot   - builds NFSROOT</echo>
+    <echo>- extmod    - builds out-of-tree kernel modules</echo>
+    <echo>- ath	    - builds ath5k driver</echo>
     <echo>- clean     - clean out everything</echo>
 </object>
 
@@ -41,6 +43,7 @@
     <Run>tar xzf source/buildroot-2013.02.tar.gz -C build</Run>
     <Copy src="config/buildroot_config_3.4.39" dest="build/buildroot-2013.02/.config" />
     <Copy src="config/busybox-1.21.x.config" dest="build/buildroot-2013.02/package/busybox/busybox-1.21.x.config.tklabs" />
+    <Copy src="source/iw-add-wave-iface-support.patch" dest="build/buildroot-2013.02/package/iw/iw-add-wave-iface-support.patch" />
     <Run>chmod +w build/buildroot-2013.02/package/busybox/busybox-1.21.x.config.tklabs</Run>
 </object>
 
@@ -66,9 +69,38 @@
 </object>
 
 <object name="kernel-build" target="kernel world" directory="build/linux-3.4.39">
+    <Copy src="../../external_modules/net/wireless/db.txt" dest="net/wireless/db.txt" />
+    <Copy src="../../external_modules/net/wireless/genregdb.awk" dest="net/wireless/genregdb.awk" />
+    <Copy src="../../external_modules/include/linux/ieee80211.h" dest="include/linux/ieee80211.h" />
+    <Copy src="../../external_modules/include/linux/nl80211.h" dest="include/linux/nl80211.h" />
+    <Copy src="../../external_modules/include/net/cfg80211.h" dest="include/net/cfg80211.h" />
+    <Copy src="../../external_modules/include/net/mac80211.h" dest="include/net/mac80211.h" />
     <Run>./crossmake $${NCPU} all</Run>
     <Run ignoreerror="true">./crossmake install 2>/dev/null</Run>
     <Run>./crossmake modules_install >/dev/null</Run>
+</object>
+
+<object name="cfg" target="cfg extmod" directory="external_modules/net/wireless/">
+    <echo>Building cfg80211 module</echo>
+    <Copy src="../../include/linux/nl80211.h" dest="../../../build/linux-3.4.39/include/linux/nl80211.h" />
+    <Copy src="../../include/linux/ieee80211.h" dest="../../../build/linux-3.4.39/include/linux/ieee80211.h" />
+    <Copy src="../../include/net/cfg80211.h" dest="../../../build/linux-3.4.39/include/net/cfg80211.h" /> 
+    <Copy src="../../include/net/mac80211.h" dest="../../../build/linux-3.4.39/include/net/mac80211.h" />  
+    <Run>./crossmake all</Run>
+    <Run>./crossmake modules_install</Run>
+</object>
+
+<object name="mac" target="mac extmod" directory="external_modules/net/mac80211/">
+    <echo>Building mac80211 module</echo>
+    <Copy src="../../include/net/mac80211.h" dest="../../../build/linux-3.4.39/include/net/mac80211.h" />
+    <Run>./crossmake all</Run>
+    <Run>./crossmake modules_install</Run>
+</object>
+
+<object name="ath" target="ath extmod" directory="external_modules/drivers/net/wireless/ath">
+    <echo>Building Atheros ath5k driver</echo>
+    <Run>./crossmake all</Run>
+    <Run>./crossmake modules_install</Run>
 </object>
 
 <!--
@@ -82,10 +114,9 @@
 
 <object name="nfsroot" target="nfsroot world" directory="scratch">
     <Run ignoreerror="true">tar czf ../output/kernel_modules.tar.gz lib</Run>
-</object>
-
-<object name="nfsroot" target="nfsroot world" directory="rootpart">
-    <Run>tar czf ../output/rootfs2.tar.gz *</Run>
+    <Copy src="vmlinuz-3.4.39" dest="../output" />
+    <Copy src="config-3.4.39" dest="../output" />
+    <Copy src="System.map-3.4.39" dest="../output" />
 </object>
 
 </BuildConfig>
