@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tkautoconf version="1">
+
+    <import file="../../bsp/rules/tkautoconf.xml" />
+   
+    <outputfile file="pdg.cproj" />
+
+    <!-- Include paths.  path is relative to Debug/Release file, one level up from .cproj -->
+    <!-- Sources: file, link, None (h file) or Compile (c file).  path is relative to .cproj file -->
+
+    <!-- BSP Configuration Includes -->
+    <include>../../inc</include>
+    <source>..\inc\conf_access.h,inc\conf_access.h,None</source>
+    <source>..\inc\conf_apps.h,inc\conf_apps.h,None</source>
+    <source>..\inc\conf_buffers.h,inc\conf_buffers.h,None</source>
+    <source>..\inc\conf_clock.h,inc\conf_clock.h,None</source>
+    <source>..\inc\conf_explorer.h,inc\conf_explorer.h,None</source>
+	<source>..\inc\conf_input.h,inc\conf_input.h,None</source>
+	<source>..\inc\conf_logcat.h,inc\conf_logcat.h,None</source>
+    <source>..\inc\conf_sleepmgr.h,inc\conf_sleepmgr.h,None</source>
+	<source>..\inc\conf_termios.h,inc\conf_termios.h,None</source>
+	<source>..\inc\conf_tones.h,inc\conf_tones.h,None</source>
+    <source>..\inc\conf_tkvs.h,inc\conf_tkvs.h,None</source>
+    <source>..\inc\conf_vanet.h,inc\conf_vanet.h,None</source>
+	<source>..\inc\version.h,inc\version.h,None</source>
+
+	<!-- Daughterboard to Mainboard API -->
+	<source>..\inc\vanet_api.h,inc\vanet_api.h,None</source>
+	
+    <!-- Micrium uC/OS II Configuration Files -->
+    <include>../../inc/ucos</include>
+    <source>..\inc\ucos\app_cfg.h,inc\ucos\app_cfg.h,None</source>
+    <source>..\inc\ucos\cpu_cfg.h,inc\ucos\cpu_cfg.h,None</source>
+    <source>..\inc\ucos\lib_cfg.h,inc\ucos\lib_cfg.h,None</source>
+    <source>..\inc\ucos\os_cfg.h,inc\ucos\os_cfg.h,None</source>
+
+    <!-- Application Main -->
+    <include>../../src</include>
+    <source>..\src\main.c,src\main.c,Compile</source>
+    <source>..\src\init.c,src\init.c,Compile</source>
+
+	<!-- Peripheral Data Gateway Task -->
+	<include>../../src/pdg_task</include>
+	<source>..\src\pdg_task\pdg_task.c,src\pdg_task\pdg_task.c,Compile</source>
+	<source>..\src\pdg_task\pdg_task.h,src\pdg_task\pdg_task.h,None</source>
+	<source>..\src\pdg_task\pdg_cmd.c,src\pdg_task\pdg_cmd.c,Compile</source>
+	<source>..\src\pdg_task\pdg_cmd.h,src\pdg_task\pdg_cmd.h,None</source>
+	
+	<!-- GPS Task -->
+	<include>../../src/gps_task</include>
+	<source>..\src\gps_task\gps_task.c,src\gps_task\gps_task.c,Compile</source>
+	<source>..\src\gps_task\gps_task.h,src\gps_task\gps_task.h,None</source>
+
+    <!-- Accelerometer Task -->
+    <include>../../src/accel_task</include>
+    <source>..\src\accel_task\accel_task.c,src\accel_task\accel_task.c,Compile</source>
+	<source>..\src\accel_task\accel_mpu6050.c,src\accel_task\accel_mpu6050.c,Compile</source>
+	<source>..\src\accel_task\accel_lis3dsh.c,src\accel_task\accel_lis3dsh.c,Compile</source>
+    <source>..\src\accel_task\accel_task.h,src\accel_task\accel_task.h,None</source>
+
+</tkautoconf>
